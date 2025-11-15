@@ -90,13 +90,28 @@
     .chip { background: var(--chip); color: #d1fae5; padding: 4px 8px; border-radius: 999px; font-size: 12px; border: 1px solid #223044; }
 
     .tabs { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr 1fr; gap: 8px; margin: 8px 0 16px; }
-    .tab { text-align: left; background: #0d1528; border: 1px solid var(--border); padding: 10px; border-radius: 10px; color: var(--text-dim); }
+    .tab { text-align: left; background: #0d1528; border: 1px solid var(--border); padding: 10px; border-radius: 10px; color: var(--text-dim); transition: background .15s ease, box-shadow .15s ease, border-color .15s ease; }
     .tab.active { background: #0e1c34; color: var(--text); border-color: #264870; box-shadow: inset 0 0 0 1px rgba(56,189,248,0.2); }
+    /* Stage-colour tabs */
+    .tab.color { background: linear-gradient(180deg, rgba(var(--tab-c,56,189,248),0.10), rgba(0,0,0,0)); border-color: rgba(var(--tab-c,56,189,248),0.35); color: var(--text); }
+    .tab.color.active { background: linear-gradient(180deg, rgba(var(--tab-c,56,189,248),0.22), rgba(0,0,0,0)); border-color: rgba(var(--tab-c,56,189,248),0.55); box-shadow: 0 0 0 2px rgba(var(--tab-c,56,189,248),0.18) inset, 0 0 0 2px rgba(var(--tab-c,56,189,248),0.12); }
+    .tab.s1 { --tab-c: 56,189,248; }   /* Research - sky */
+    .tab.s2 { --tab-c: 245,158,11; }   /* Plan - amber */
+    .tab.s3 { --tab-c: 167,139,250; }  /* Perform - violet */
+    .tab.s4 { --tab-c: 34,197,94; }    /* Process - green */
+    .tab.s5 { --tab-c: 244,114,182; }  /* Evaluation - pink */
 
     .progress { display: flex; gap: 8px; align-items: center; margin: 6px 0 14px; }
-    .progress .dot { width: 10px; height: 10px; border-radius: 999px; background: #1f2b44; border: 1px solid #263652; }
-    .progress .dot.done { background: var(--accent); box-shadow: 0 0 0 3px rgba(34,197,94,0.2); }
-    .progress .dot.current { background: var(--accent-2); box-shadow: 0 0 0 3px rgba(56,189,248,0.2); }
+    .progress .dot { width: 10px; height: 10px; border-radius: 999px; background: #1f2b44; border: 1px solid #263652; transition: box-shadow .15s ease, background .15s ease, border-color .15s ease; }
+    /* Stage-coloured dots */
+    .progress .dot.color { background: rgba(var(--dot-c,56,189,248), 0.15); border-color: rgba(var(--dot-c,56,189,248), 0.35); }
+    .progress .dot.color.done { background: rgba(var(--dot-c,56,189,248), 0.7); border-color: rgba(var(--dot-c,56,189,248), 0.8); box-shadow: 0 0 0 3px rgba(var(--dot-c,56,189,248), 0.22); }
+    .progress .dot.color.current { background: rgba(var(--dot-c,56,189,248), 0.95); border-color: rgba(var(--dot-c,56,189,248), 0.95); box-shadow: 0 0 0 3px rgba(var(--dot-c,56,189,248), 0.28); }
+    .progress .dot.s1 { --dot-c: 56,189,248; }  /* sky */
+    .progress .dot.s2 { --dot-c: 245,158,11; }  /* amber */
+    .progress .dot.s3 { --dot-c: 167,139,250; } /* violet */
+    .progress .dot.s4 { --dot-c: 34,197,94; }   /* green */
+    .progress .dot.s5 { --dot-c: 244,114,182; } /* pink */
 
     .section h2 { margin-top: 0; font-size: 1.1rem; }
     .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
@@ -651,35 +666,33 @@
   function renderPatientCards(){
     const wrap = document.getElementById('patientCards');
     wrap.innerHTML = '';
-    patients.forEach((p, idx)=>{
+    patients.forEach((p)=>{
       const card = document.createElement('article');
       card.className = 'card'; card.setAttribute('role','listitem'); card.tabIndex=0;
       const tagHtml = p.tags.map(t=>`<span class="chip">${t}</span>`).join(' ');
       const chipsId = `chips_${p.id}`;
-      const hideChips = idx === 0; // hide hints for first patient card
+      const hideChips = true; // hide hints for all patient cards by default
       card.innerHTML = `
         <h3>${p.name} <span class="small" style="color:#93c5fd;">Age ${p.age}</span></h3>
         <div id="${chipsId}" class="chips" style="${hideChips ? 'display:none;' : ''}">${tagHtml}</div>
         <div class="small">Symptoms: ${p.symptoms.join('; ')}</div>
         <div class="small">Background: ${p.background}</div>
         <div style="display:flex; gap:8px; margin-top:6px; flex-wrap: wrap;">
-          ${hideChips ? `<button class="btn ghost" data-hint="${p.id}" aria-controls="${chipsId}" aria-expanded="false">Show hint</button>` : ''}
+          <button class=\"btn ghost\" data-hint=\"${p.id}\" aria-controls=\"${chipsId}\" aria-expanded=\"false\">Show hint</button>
           <button class="btn" data-pid="${p.id}">Investigate</button>
         </div>
       `;
       const invBtn = card.querySelector('button[data-pid]');
       if (invBtn) invBtn.addEventListener('click', () => openDashboard(p.id));
-      if (hideChips) {
-        const hintBtn = card.querySelector(`button[data-hint="${p.id}"]`);
-        const chipsEl = card.querySelector(`#${chipsId}`);
-        if (hintBtn && chipsEl) {
-          hintBtn.addEventListener('click', () => {
-            const hidden = chipsEl.style.display === 'none';
-            chipsEl.style.display = hidden ? 'flex' : 'none';
-            hintBtn.setAttribute('aria-expanded', hidden ? 'true' : 'false');
-            hintBtn.textContent = hidden ? 'Hide hint' : 'Show hint';
-          });
-        }
+      const hintBtn = card.querySelector(`button[data-hint=\"${p.id}\"]`);
+      const chipsEl = card.querySelector(`#${chipsId}`);
+      if (hintBtn && chipsEl) {
+        hintBtn.addEventListener('click', () => {
+          const hidden = chipsEl.style.display === 'none';
+          chipsEl.style.display = hidden ? 'flex' : 'none';
+          hintBtn.setAttribute('aria-expanded', hidden ? 'true' : 'false');
+          hintBtn.textContent = hidden ? 'Hide hint' : 'Show hint';
+        });
       }
       card.addEventListener('keypress',(e)=>{ if(e.key==='Enter') openDashboard(p.id)});
       wrap.appendChild(card);
@@ -706,7 +719,8 @@
     const tabs = document.getElementById('tabs'); tabs.innerHTML = '';
     Sections.forEach((s, idx)=>{
       const btn = document.createElement('button');
-      btn.className = 'tab' + (idx===AppState.currentSectionIndex?' active':'');
+      const stageClass = 's' + (idx+1);
+      btn.className = 'tab color ' + stageClass + (idx===AppState.currentSectionIndex?' active':'');
       btn.textContent = s.label;
       btn.addEventListener('click', ()=>{ AppState.currentSectionIndex = idx; renderDashboard(); });
       tabs.appendChild(btn);
@@ -716,7 +730,9 @@
     const prog = document.getElementById('progressDots'); prog.innerHTML='';
     Sections.forEach((_, idx)=>{
       const d = document.createElement('div');
-      d.className = 'dot' + (idx<AppState.currentSectionIndex? ' done': idx===AppState.currentSectionIndex?' current':'');
+      const stageClass = 's' + (idx+1);
+      const state = idx<AppState.currentSectionIndex? ' done' : idx===AppState.currentSectionIndex? ' current' : '';
+      d.className = 'dot color ' + stageClass + state;
       prog.appendChild(d);
     });
 

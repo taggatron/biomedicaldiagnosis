@@ -1,0 +1,1177 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>F173 Biomedical Techniques Virtual Lab</title>
+  <style>
+    /*
+      F173 Biomedical Techniques Virtual Lab
+      - Single page app with embedded CSS and JS
+      - Responsive, semantic, accessible
+    */
+    :root {
+      --bg: #0f172a;         /* slate-900 */
+      --panel: #111827;      /* gray-900 */
+      --muted: #334155;      /* slate-600 */
+      --text: #e5e7eb;       /* gray-200 */
+      --text-dim: #cbd5e1;   /* slate-300 */
+      --accent: #22c55e;     /* green-500 */
+      --accent-2: #38bdf8;   /* sky-400 */
+      --warn: #f59e0b;       /* amber-500 */
+      --danger: #ef4444;     /* red-500 */
+      --ok: #10b981;         /* emerald-500 */
+      --card: #0b1222;       /* deep */
+      --chip: #1f2937;       /* gray-800 */
+      --border: #1f2937;     /* gray-800 */
+      --focus: #93c5fd;      /* blue-300 */
+    }
+
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body {
+      margin: 0; background: radial-gradient(1200px 600px at 10% 0%, #0b1021 0%, var(--bg) 50%, #0a0f1d 100%);
+      color: var(--text); font: 16px/1.4 system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, Helvetica, Arial;
+    }
+    a { color: var(--accent-2); }
+    button { cursor: pointer; }
+
+    .container { max-width: 1100px; margin: 0 auto; padding: 24px; }
+    header { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 16px; }
+    header h1 { font-size: 1.25rem; margin: 0; letter-spacing: 0.5px; }
+    header .actions { display: flex; gap: 8px; align-items: center; }
+
+    .screen { display: none; }
+    .screen.active { display: block; }
+
+    .panel {
+      background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(0,0,0,0.2));
+      border: 1px solid var(--border);
+      border-radius: 14px; padding: 18px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.05);
+    }
+
+    .intro {
+      display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 24px; align-items: center;
+    }
+    @media (max-width: 900px) {
+      .intro { grid-template-columns: 1fr; }
+    }
+
+    .title {
+      font-size: clamp(1.6rem, 3vw, 2.2rem);
+      margin: 0 0 12px; font-weight: 800;
+      background: linear-gradient(100deg, #7dd3fc, #22c55e 60%, #fef9c3);
+      -webkit-background-clip: text; background-clip: text; color: transparent;
+    }
+    .subtitle { color: var(--text-dim); margin: 0 0 16px; }
+
+    .btn {
+      background: linear-gradient(180deg, rgba(34,197,94,0.95), rgba(34,197,94,0.8));
+      color: #07210f; border: 0; padding: 12px 18px; border-radius: 10px;
+      font-weight: 700; letter-spacing: 0.2px; box-shadow: 0 6px 20px rgba(34,197,94,0.25);
+    }
+    .btn.secondary { background: linear-gradient(180deg, rgba(56,189,248,0.95), rgba(56,189,248,0.8)); color: #062134; }
+    .btn.ghost { background: transparent; color: var(--text); border: 1px solid var(--border); }
+    .btn:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+
+    .grid { display: grid; gap: 16px; }
+    .grid.cards { grid-template-columns: repeat(3, 1fr); }
+    @media (max-width: 1000px) {
+      .grid.cards { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 720px) {
+      .grid.cards { grid-template-columns: 1fr; }
+    }
+
+    .card { background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(0,0,0,0.2)); border: 1px solid var(--border); border-radius: 14px; padding: 16px; display: flex; flex-direction: column; gap: 10px; }
+    .card h3 { margin: 0; }
+    .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+    .chip { background: var(--chip); color: #d1fae5; padding: 4px 8px; border-radius: 999px; font-size: 12px; border: 1px solid #223044; }
+
+    .tabs { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr 1fr; gap: 8px; margin: 8px 0 16px; }
+    .tab { text-align: left; background: #0d1528; border: 1px solid var(--border); padding: 10px; border-radius: 10px; color: var(--text-dim); }
+    .tab.active { background: #0e1c34; color: var(--text); border-color: #264870; box-shadow: inset 0 0 0 1px rgba(56,189,248,0.2); }
+
+    .progress { display: flex; gap: 8px; align-items: center; margin: 6px 0 14px; }
+    .progress .dot { width: 10px; height: 10px; border-radius: 999px; background: #1f2b44; border: 1px solid #263652; }
+    .progress .dot.done { background: var(--accent); box-shadow: 0 0 0 3px rgba(34,197,94,0.2); }
+    .progress .dot.current { background: var(--accent-2); box-shadow: 0 0 0 3px rgba(56,189,248,0.2); }
+
+    .section h2 { margin-top: 0; font-size: 1.1rem; }
+    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    @media (max-width: 860px) { .two-col { grid-template-columns: 1fr; } }
+
+    .list { margin: 0; padding-left: 18px; }
+
+    .mcq { display: grid; gap: 12px; margin-top: 8px; }
+    .mcq .q { font-weight: 600; }
+    .options { display: grid; gap: 8px; }
+    .option { display: flex; gap: 8px; align-items: center; background: #0c1529; border: 1px solid var(--border); padding: 8px; border-radius: 10px; }
+    .option input { transform: translateY(1px); }
+
+    .feedback { border-radius: 10px; padding: 8px; border: 1px solid #1f3a2c; background: linear-gradient(180deg, rgba(16,185,129,0.08), rgba(0,0,0,0)); display: none; }
+    .feedback.error { border-color: #4b1f26; background: linear-gradient(180deg, rgba(239,68,68,0.08), rgba(0,0,0,0)); }
+    .feedback.show { display: block; }
+
+    .test-list { display: grid; gap: 8px; }
+    .test-item { border: 1px solid var(--border); background: #0c1426; border-radius: 10px; padding: 10px; display: grid; gap: 8px; }
+    .method, .hazards { background: #0a1120; border: 1px dashed #21304b; border-radius: 10px; padding: 8px; }
+    .small { color: var(--text-dim); font-size: 0.9rem; }
+
+    table { width: 100%; border-collapse: collapse; }
+    th, td { text-align: left; border-bottom: 1px solid #1f2937; padding: 8px; }
+    thead th { color: var(--text-dim); font-weight: 600; }
+
+    .pill { display: inline-block; padding: 4px 8px; border-radius: 999px; font-size: 12px; border: 1px solid #223044; background: #0f1a31; color: #c7d2fe; }
+
+    .help { display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px; border-radius: 999px; background: #0c1426; border: 1px solid #223044; color: #7dd3fc; font-weight: 800; cursor: pointer; }
+
+    dialog { border: 1px solid var(--border); background: #0a1221; color: var(--text); border-radius: 12px; padding: 16px; width: min(600px, 92vw); }
+    dialog::backdrop { background: rgba(2,6,23,0.72); backdrop-filter: blur(2px); }
+
+    .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header aria-label="App header">
+      <h1>F173 Biomedical Techniques Virtual Lab</h1>
+      <div class="actions">
+        <button class="btn ghost" id="helpBtn" aria-haspopup="dialog" aria-controls="helpDialog">Help</button>
+        <button class="btn ghost" id="resetBtn">Reset game</button>
+      </div>
+    </header>
+
+    <!-- Screens -->
+    <main>
+      <!-- Landing -->
+      <section id="screen-intro" class="screen active" aria-labelledby="intro-title">
+        <div class="panel intro">
+          <div>
+            <h2 id="intro-title" class="title">F173 Biomedical Techniques Virtual Lab</h2>
+            <p class="subtitle">You are a trainee biomedical scientist in a hospital lab. Investigate three virtual patients by planning suitable biomedical tests, running simplified simulations, processing the data, and evaluating your methods—mapped to the F173 assessment criteria.</p>
+            <ul class="list small">
+              <li>Techniques: qualitative ion tests; biochemical tests (proteins, sugars, lipids); chromatography; titration; colorimetry.</li>
+              <li>Focus: planning, safe methods, data quality, interpretation, evaluation.</li>
+            </ul>
+            <div style="margin-top:16px; display:flex; gap:8px; flex-wrap:wrap;">
+              <button id="startBtn" class="btn" aria-controls="screen-patients">Start</button>
+              <button id="quickStartBtn" class="btn secondary" aria-controls="screen-patients">Quick start (Patient list)</button>
+            </div>
+          </div>
+          <div class="panel" aria-hidden="true">
+            <h3 style="margin-top:0;">What you'll practise</h3>
+            <div class="chips" style="margin:8px 0 10px;">
+              <span class="chip">Research & hypothesis</span>
+              <span class="chip">Planning & risk</span>
+              <span class="chip">Practical data</span>
+              <span class="chip">Processing & uncertainty</span>
+              <span class="chip">Evaluation & improvements</span>
+            </div>
+            <p class="small">Move through five sections for each patient. Instant feedback helps reinforce key F173 ideas like reference ranges, uncertainty, and choosing the most appropriate techniques.</p>
+            <div style="margin-top:8px;">
+              <span class="pill">No plugins</span>
+              <span class="pill">Works offline</span>
+              <span class="pill">Teacher-editable data</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Patient selection -->
+      <section id="screen-patients" class="screen" aria-labelledby="patients-title">
+        <div class="panel">
+          <h2 id="patients-title" class="title" style="font-size:1.4rem;">Choose a Patient</h2>
+          <div id="patientCards" class="grid cards" role="list"></div>
+        </div>
+      </section>
+
+      <!-- Dashboard per patient -->
+      <section id="screen-dashboard" class="screen" aria-labelledby="dash-title">
+        <div class="panel">
+          <div style="display:flex; justify-content:space-between; gap:10px; align-items: center;">
+            <div>
+              <h2 id="dash-title" style="margin:0 0 6px;">Investigation Dashboard</h2>
+              <div id="patientSummary" class="small"></div>
+            </div>
+            <div>
+              <button class="btn ghost" id="backToPatientsBtn">Back to patients</button>
+            </div>
+          </div>
+
+          <div class="progress" aria-label="Section progress" id="progressDots"></div>
+          <nav class="tabs" id="tabs" aria-label="Dashboard sections"></nav>
+
+          <section id="sectionContent" class="section" aria-live="polite"></section>
+
+          <div style="display:flex; gap:8px; justify-content: flex-end; margin-top: 14px;">
+            <button class="btn ghost" id="prevSectionBtn">Previous</button>
+            <button class="btn" id="nextSectionBtn">Next</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Game summary -->
+      <section id="screen-summary" class="screen" aria-labelledby="summary-title">
+        <div class="panel">
+          <h2 id="summary-title" class="title" style="font-size:1.4rem;">Overall Summary</h2>
+          <div id="overallSummary"></div>
+          <div style="margin-top:12px; display:flex; gap:8px;">
+            <button class="btn secondary" id="goPatientsAgain">Pick another patient</button>
+            <button class="btn ghost" id="resetBtn2">Reset game</button>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- Help dialog -->
+  <dialog id="helpDialog" aria-labelledby="helpTitle">
+    <h3 id="helpTitle" style="margin-top:0;">Quick definitions</h3>
+    <ul class="list small">
+      <li><strong>Reference range</strong>: values expected for a healthy population; may vary with age, sex, time of day.</li>
+      <li><strong>Qualitative vs quantitative</strong>: qualitative = descriptive outcome (e.g. colour change); quantitative = numerical measurement (e.g. concentration).</li>
+      <li><strong>Percentage uncertainty</strong>: (absolute uncertainty ÷ measured value) × 100%. Combine where appropriate.</li>
+      <li><strong>Chromatography</strong>: separates components by differential movement along a stationary phase; compare Rf values with references.</li>
+      <li><strong>Controls and blanks</strong>: blank contains all reagents except analyte; checks interference and baseline.</li>
+    </ul>
+    <div style="display:flex; justify-content:flex-end; margin-top:8px;">
+      <button class="btn" id="helpClose">Close</button>
+    </div>
+  </dialog>
+
+  <script>
+  // ==========================
+  // CONFIGURATION DATA (EDITABLE BY TEACHERS)
+  // ==========================
+  // Teachers can edit the following structures to update patients, tests, questions, and reference ranges.
+
+  // Reference ranges and constants
+  const referenceRanges = {
+    urine: {
+      glucose: { unit: 'mmol/L', normal: [0, 0.8] },
+      protein: { unit: 'mg/dL', normal: [0, 15] }
+    },
+    blood: {
+      glucose: { unit: 'mmol/L', normal: [4.0, 7.8] },
+      bilirubin: { unit: 'µmol/L', normal: [3, 20] },
+      sodium: { unit: 'mmol/L', normal: [135, 145] }
+    }
+  };
+
+  // Test definitions (summarized for realism without heavy chemistry)
+  // Each test includes an id, name, category, type (qualitative/quantitative), method steps, hazards, and a simulate() function.
+  const tests = [
+    // Organic/biochemical qualitative tests
+    {
+      id: 'benedicts', category: 'Urinalysis / Qualitative organic', name: "Benedict's test (reducing sugars)", type: 'qualitative',
+      method: [
+        'Add equal volume of Benedict\'s reagent to urine sample in a test tube.',
+        'Heat in a water bath (~80°C) for up to 5 minutes.',
+        'Observe colour change: blue → green/yellow/orange/red indicates increasing sugar.'
+      ],
+      hazards: ['Hot water bath (burn risk)', 'Copper(II) sulphate is harmful', 'Biological sample (urine) is a biohazard'],
+      simulate: (ctx) => {
+        // Context may include patient and scenario; simple rule based on patient likely diagnosis
+        const { patientId } = ctx;
+        if (patientId === 'A') return { outcome: 'Brick-red precipitate', positive: true };
+        if (patientId === 'B') return { outcome: 'Blue (no change)', positive: false };
+        if (patientId === 'C') return { outcome: 'Green/yellow precipitate (trace)', positive: true };
+        return { outcome: 'Blue (no change)', positive: false };
+      }
+    },
+    {
+      id: 'biuret', category: 'Urinalysis / Qualitative organic', name: 'Biuret test (proteins)', type: 'qualitative',
+      method: [
+        'Add a few drops of 1M NaOH to the sample.',
+        'Add a few drops of dilute copper(II) sulphate solution.',
+        'Mix gently; purple/violet indicates presence of peptide bonds (protein).'
+      ],
+      hazards: ['Sodium hydroxide: corrosive', 'Copper(II) sulphate: harmful', 'Biological sample (urine): biohazard'],
+      simulate: (ctx) => {
+        const { patientId } = ctx;
+        if (patientId === 'C') return { outcome: 'Purple/violet colour (protein present)', positive: true };
+        return { outcome: 'Blue (no protein detected)', positive: false };
+      }
+    },
+    {
+      id: 'emulsion', category: 'Urinalysis / Qualitative organic', name: 'Emulsion test (lipids)', type: 'qualitative',
+      method: [
+        'Add ethanol to sample; shake well to dissolve lipids.',
+        'Add water; shake gently.',
+        'Cloudy white emulsion indicates presence of lipids.'
+      ],
+      hazards: ['Ethanol: flammable', 'Biological sample: biohazard'],
+      simulate: (ctx) => ({ outcome: 'No emulsion (negative)', positive: false })
+    },
+    {
+      id: 'sudan', category: 'Urinalysis / Qualitative organic', name: 'Sudan III (lipids)', type: 'qualitative',
+      method: [
+        'Add Sudan III stain to sample.',
+        'Red-stained oil layer indicates lipids (qualitative).'
+      ],
+      hazards: ['Dye: irritant', 'Biological sample: biohazard'],
+      simulate: (ctx) => ({ outcome: 'No distinct red oil layer', positive: false })
+    },
+    {
+      id: 'fehlings', category: 'Urinalysis / Qualitative organic', name: "Fehling's test (aldehydes)", type: 'qualitative',
+      method: [
+        'Mix equal volumes of Fehling\'s A and B, add sample.',
+        'Warm in water bath; brick-red precipitate indicates aldehyde (e.g. some sugars after hydrolysis).'
+      ],
+      hazards: ['Alkaline solution: irritant', 'Copper(II) solutions: harmful'],
+      simulate: (ctx) => ({ outcome: 'Weak orange precipitate (if sugar > trace)', positive: Math.random() > 0.6 })
+    },
+
+    // Qualitative ion tests (simplified)
+    {
+      id: 'cations_naoh', category: 'Qualitative ion tests', name: 'Cations with NaOH', type: 'qualitative',
+      method: [
+        'Add a few drops of NaOH to solution.',
+        'Observe precipitates/colour (e.g. Cu²⁺: blue ppt; Fe²⁺: green ppt; Fe³⁺: brown ppt; Al³⁺: white ppt dissolves in excess).'
+      ],
+      hazards: ['Sodium hydroxide: corrosive'],
+      simulate: (ctx) => ({ outcome: 'Fe³⁺ likely: brown precipitate formed', positive: true })
+    },
+    {
+      id: 'anions_bacl2', category: 'Qualitative ion tests', name: 'Anions: sulphate with BaCl₂', type: 'qualitative',
+      method: [
+        'Add dilute HCl (to remove carbonates), then add BaCl₂ to solution.',
+        'White precipitate indicates sulphate (SO₄²⁻).'
+      ],
+      hazards: ['Barium chloride: toxic', 'Dilute HCl: irritant'],
+      simulate: (ctx) => ({ outcome: 'No precipitate (SO₄²⁻ absent)', positive: false })
+    },
+
+    // Chromatography
+    {
+      id: 'paper_chroma', category: 'Chromatography', name: 'Paper chromatography (sugars/amino acids)', type: 'qualitative',
+      method: [
+        'Spot sample and standards on baseline of chromatography paper.',
+        'Develop in solvent; mark solvent front.',
+        'Dry and spray with suitable stain (e.g. ninhydrin for amino acids). Compare Rf values.'
+      ],
+      hazards: ['Organic solvents: flammable/irritant'],
+      simulate: (ctx) => ({ outcome: 'Spots at Rf 0.18 and 0.32; matches glucose standard at 0.32', positive: true })
+    },
+    {
+      id: 'tlc', category: 'Chromatography', name: 'Thin layer chromatography (TLC)', type: 'qualitative',
+      method: [
+        'Apply small spots of sample and references on TLC plate.',
+        'Develop in closed chamber, mark solvent front; visualise with UV/stain.',
+        'Compare Rf to identify presence/absence.'
+      ],
+      hazards: ['Organic solvents: flammable'],
+      simulate: (ctx) => ({ outcome: 'One spot aligns with bilirubin reference (Rf ~0.52)', positive: ctx.patientId === 'B' })
+    },
+
+    // Quantitative
+    {
+      id: 'titration', category: 'Titration', name: 'Acid-base titration (example analyte)', type: 'quantitative',
+      method: [
+        'Rinse burette and pipette with the solutions to be used.',
+        'Pipette 25.0 mL of sample into a conical flask; add indicator.',
+        'Titrate with standard solution to endpoint; record concordant titres (±0.10 mL).'
+      ],
+      hazards: ['Acids/bases: corrosive', 'Glassware: breakage risk'],
+      simulate: (ctx) => {
+        // Generate three titres around true value
+        const trueVal = ctx.patientId === 'A' ? 24.80 : ctx.patientId === 'C' ? 23.40 : 25.10;
+        const titres = Array.from({ length: 3 }, () => +(trueVal + (Math.random()-0.5)*0.12).toFixed(2));
+        return { titres, unit: 'mL', indicator: 'Phenolphthalein' };
+      }
+    },
+    {
+      id: 'colorimetry_glucose', category: 'Colorimetry/spectrophotometry', name: 'Colorimetry: glucose (calibration)', type: 'quantitative',
+      method: [
+        'Prepare blank and a series of glucose standards (e.g. 0.5–5.0 mmol/L).',
+        'Measure absorbance at appropriate wavelength (e.g. 540 nm).',
+        'Plot calibration curve; measure patient sample absorbance and read concentration.'
+      ],
+      hazards: ['Cuvettes: fragile', 'Reagents: low risk (review SDS)'],
+      simulate: (ctx) => {
+        const trueConc = ctx.patientId === 'A' ? 14.8 : ctx.patientId === 'C' ? 8.2 : 6.0; // mmol/L
+        const repeats = Array.from({ length: 3 }, (_, i) => +((trueConc + (Math.random()-0.5)*0.6)).toFixed(1));
+        const absorbances = repeats.map(v => +(0.12 * v + 0.02 + (Math.random()-0.5)*0.01).toFixed(3));
+        return { repeats, absorbances, unit: 'mmol/L', wavelength: '540 nm' };
+      }
+    },
+    {
+      id: 'colorimetry_bilirubin', category: 'Colorimetry/spectrophotometry', name: 'Colorimetry: bilirubin (diazo method)', type: 'quantitative',
+      method: [
+        'Use blank and bilirubin standards; diazo reagent forms coloured complex.',
+        'Measure absorbance near 600 nm; read concentration from calibration.',
+        'Account for hemolysis/interference; run control samples.'
+      ],
+      hazards: ['Reagents: irritant', 'Glassware: breakage'],
+      simulate: (ctx) => {
+        const trueConc = ctx.patientId === 'B' ? 68 : 15; // µmol/L
+        const repeats = Array.from({ length: 3 }, () => +(trueConc + (Math.random()-0.5)*6).toFixed(0));
+        const absorbances = repeats.map(v => +(0.008 * v + 0.01 + (Math.random()-0.5)*0.01).toFixed(3));
+        return { repeats, absorbances, unit: 'µmol/L', wavelength: '600 nm' };
+      }
+    },
+    // Microscopy example
+    {
+      id: 'urine_sediment', category: 'Microscopy', name: 'Microscopy: urine sediment', type: 'qualitative',
+      method: [
+        'Centrifuge urine; place drop of sediment on slide with coverslip.',
+        'Examine under microscope for cells/casts/crystals; estimate presence.'
+      ],
+      hazards: ['Biological sample: biohazard', 'Glass slides: cuts'],
+      simulate: (ctx) => ({ outcome: ctx.patientId === 'C' ? 'Hyaline casts and proteinaceous material observed' : 'Normal sediment' , positive: ctx.patientId === 'C' })
+    }
+  ];
+
+  // Patients (three cases)
+  const patients = [
+    {
+      id: 'A', name: 'Sam Patel', age: 17,
+      tags: ['Possible diabetes', 'Possible kidney issue'],
+      symptoms: ['Intense thirst (polydipsia)', 'Frequent urination (polyuria)', 'Unintentional weight loss', 'Fatigue'],
+      background: 'Active college student. No known chronic conditions. Family history of Type 1 diabetes in a sibling.',
+      possibleDiseases: ['Type 1 diabetes mellitus', 'Type 2 diabetes mellitus', 'Chronic kidney disease', 'Hyperthyroidism'],
+      mostLikely: ['Type 1 diabetes mellitus', 'Chronic kidney disease'],
+      recommendedTests: ['benedicts', 'colorimetry_glucose', 'biuret', 'paper_chroma']
+    },
+    {
+      id: 'B', name: 'Amira Khan', age: 19,
+      tags: ['Possible liver issue', 'Possible haemolysis'],
+      symptoms: ['Jaundice (yellow skin/eyes)', 'Fatigue', 'Dark urine', 'Pale stools', 'Upper right abdominal discomfort'],
+      background: 'Recent viral illness. No alcohol. No known medications. Vaccinations up to date.',
+      possibleDiseases: ['Viral hepatitis', 'Obstructive cholestasis', 'Haemolytic anaemia', 'Gilbert\'s syndrome'],
+      mostLikely: ['Viral hepatitis', 'Obstructive cholestasis'],
+      recommendedTests: ['colorimetry_bilirubin', 'tlc', 'urine_sediment']
+    },
+    {
+      id: 'C', name: 'Michael Osei', age: 20,
+      tags: ['Possible kidney disease', 'Possible heart failure'],
+      symptoms: ['Oedema (ankles)', 'Frothy urine', 'Elevated blood pressure', 'Fatigue'],
+      background: 'Recent sore throat 3 weeks ago. No known chronic conditions.',
+      possibleDiseases: ['Nephrotic syndrome', 'Chronic kidney disease', 'Heart failure', 'Glomerulonephritis'],
+      mostLikely: ['Nephrotic syndrome', 'Glomerulonephritis'],
+      recommendedTests: ['biuret', 'colorimetry_glucose', 'urine_sediment', 'titration']
+    }
+  ];
+
+  // MCQ bank (by section). Supports single-correct and multi-select.
+  // Each question: { id, patient: 'A'|'B'|'C'|'all', text, options: [], correct: number | number[], multi?: true, explanation, cluster }
+  const mcqBank = {
+    section1: [
+      {
+        id: 'A-s1-q1', patient: 'A', text: 'Which diseases could explain Sam\'s symptoms (select all that apply)?', multi: true,
+        options: ['Type 1 diabetes mellitus', 'Type 2 diabetes mellitus', 'Chronic kidney disease', 'Hyperthyroidism'],
+        correct: [0,1,2,3],
+        explanation: 'All listed could contribute: diabetes explains thirst/urination/weight loss; CKD can contribute to fatigue/polyuria; hyperthyroidism can cause weight loss/fatigue.',
+        cluster: 'P1M1'
+      },
+      {
+        id: 'A-s1-q2', patient: 'A', text: 'Which TWO are most likely and why?',
+        options: [
+          'Type 1 DM and CKD: classic triad + possible renal strain',
+          'Type 2 DM and hyperthyroidism: both in young people commonly',
+          'Only hyperthyroidism: explains all signs better than diabetes',
+          'Only CKD: explains thirst/urination fully without diabetes'
+        ],
+        correct: 0,
+        explanation: 'Type 1 diabetes is common in teens with these symptoms; CKD is less likely as primary but consider due to polyuria/fatigue. Other options are weaker explanations.',
+        cluster: 'P1M1'
+      },
+      {
+        id: 'B-s1-q1', patient: 'B', text: 'Which diseases could explain Amira\'s symptoms (select all that apply)?', multi: true,
+        options: ['Viral hepatitis', 'Obstructive cholestasis', 'Haemolytic anaemia', 'Gilbert\'s syndrome'],
+        correct: [0,1,2,3],
+        explanation: 'All listed can cause jaundice; dark urine and pale stools particularly point to cholestasis/obstruction; viral hepatitis is also common.',
+        cluster: 'P1M1'
+      },
+      {
+        id: 'B-s1-q2', patient: 'B', text: 'Which TWO are most likely and why?',
+        options: [
+          'Viral hepatitis and obstructive cholestasis: match urine/stool colour and RUQ pain',
+          'Haemolytic anaemia and Gilbert\'s: typical with pale stools and dark urine',
+          'Only Gilbert\'s: benign; explains all findings including dark urine'
+        ],
+        correct: 0,
+        explanation: 'The combination fits hepatitis or cholestasis better. Gilbert\'s usually gives mild unconjugated hyperbilirubinaemia without dark urine/pale stools.',
+        cluster: 'P1M1'
+      },
+      {
+        id: 'C-s1-q1', patient: 'C', text: 'Which diseases could explain Michael\'s symptoms (select all that apply)?', multi: true,
+        options: ['Nephrotic syndrome', 'Chronic kidney disease', 'Heart failure', 'Glomerulonephritis'],
+        correct: [0,1,2,3],
+        explanation: 'All could be relevant; frothy urine suggests proteinuria (nephrotic/glomerular). Oedema can be renal or cardiac.',
+        cluster: 'P1M1'
+      },
+      {
+        id: 'C-s1-q2', patient: 'C', text: 'Which TWO are most likely and why?',
+        options: [
+          'Nephrotic syndrome and glomerulonephritis: proteinuria and oedema fit best',
+          'Heart failure and CKD: both explain frothy urine directly',
+          'Only CKD: explains all features including recent sore throat'
+        ],
+        correct: 0,
+        explanation: 'Proteinuria (frothy urine) and oedema after recent infection favour glomerular disease/nephrotic picture.',
+        cluster: 'P1M1'
+      }
+    ],
+    section2: [
+      {
+        id: 'plan-q1', patient: 'all', text: 'Which is the most efficient initial test set for suspected diabetes?',
+        options: [
+          'Benedict\'s urine test + glucose colorimetry',
+          'TLC of bile pigments + BaCl₂ test',
+          'Biuret test + Sudan III test'
+        ],
+        correct: 0,
+        explanation: 'For diabetes, test for glucose directly: qualitative (Benedict\'s) and quantitative (colorimetry).',
+        cluster: 'P2P3M2D1'
+      },
+      {
+        id: 'plan-q2', patient: 'all', text: 'Select appropriate PPE/controls for NaOH-based tests (select all).', multi: true,
+        options: ['Wear eye protection and gloves', 'Use fume cupboard for volatile solvents', 'Have acid neutraliser available', 'No need to label samples'],
+        correct: [0,2],
+        explanation: 'NaOH is corrosive: eye/skin protection and neutraliser are appropriate. Fume hood relates to volatile solvents; samples must be labelled.',
+        cluster: 'P2P3M2D1'
+      },
+      {
+        id: 'plan-q3', patient: 'all', text: 'Which step is missing from a good titration method?',
+        options: [
+          'Rinse burette and pipette with solutions used',
+          'Ignore concordant titres; take any three readings',
+          'Record to the nearest 0.05 mL'
+        ],
+        correct: 0,
+        explanation: 'Glassware should be conditioned with the solutions to be used to reduce errors.',
+        cluster: 'P2P3M2D1'
+      }
+    ],
+    section3: [
+      {
+        id: 'perf-q1', patient: 'all', text: 'Which replicate should be repeated if titres are 24.72, 24.81, 24.12 mL?',
+        options: ['24.72 mL', '24.81 mL', '24.12 mL'],
+        correct: 2,
+        explanation: '24.12 mL is not concordant with the others and is likely an outlier.',
+        cluster: 'P4P6D2'
+      },
+      {
+        id: 'perf-q2', patient: 'all', text: 'A colorimeter reading jumps unexpectedly. Best action?',
+        options: ['Accept mean of all', 'Check cuvette cleanliness and remeasure', 'Change wavelength randomly'],
+        correct: 1,
+        explanation: 'Clean cuvette, ensure correct orientation/wavelength, then remeasure.',
+        cluster: 'P4P6D2'
+      }
+    ],
+    section4: [
+      {
+        id: 'proc-q1', patient: 'all', text: 'If a burette has ±0.05 mL uncertainty and mean titre is 24.80 mL, percentage uncertainty is approximately:',
+        options: ['±0.2%', '±0.4%', '±1.0%'],
+        correct: 1,
+        explanation: '0.05/24.80 × 100 ≈ 0.20%, but titrations often include two readings (start and end) → ~0.4% overall.',
+        cluster: 'P7P8M4M5D3D4'
+      },
+      {
+        id: 'proc-q2', patient: 'all', text: 'A blood glucose of 14.8 mmol/L vs reference 4.0–7.8 mmol/L is:',
+        options: ['Within normal range', 'Below normal range', 'Above normal range'],
+        correct: 2,
+        explanation: '14.8 mmol/L is above the normal fasting/postprandial range → hyperglycaemia.',
+        cluster: 'P7P8M4M5D3D4'
+      }
+    ],
+    section5: [
+      {
+        id: 'eval-q1', patient: 'all', text: 'Best improvement to increase reliability for quantitative colorimetry?',
+        options: ['Use single reading per standard', 'Increase repeats and include quality control samples', 'Use a different reagent without calibration'],
+        correct: 1,
+        explanation: 'More repeats and QC improve reliability and validity of conclusions.',
+        cluster: 'P12M6D5'
+      },
+      {
+        id: 'eval-q2', patient: 'all', text: 'Which statements correctly evaluate sources/reference ranges? (select all)', multi: true,
+        options: [
+          'Peer-reviewed clinical ranges are preferable to anonymous blogs',
+          'Reference ranges are universal; ignore age/sex/time',
+          'Cite the method used for measurement when comparing'
+        ],
+        correct: [0,2],
+        explanation: 'Use reputable sources and comparable methods; ranges may vary with age/sex/time and method.',
+        cluster: 'P12M6D5'
+      }
+    ]
+  };
+
+  // ==========================
+  // APP STATE AND UTILITIES
+  // ==========================
+  const AppState = {
+    currentPatientId: null,
+    currentSectionIndex: 0, // 0..4
+    // Per patient state
+    patients: {}, // id -> { selectedTests: Set, results: {}, scores: {cluster: points}, mcqAnswers: {}, notes: {}, 
+                 //   hypothesis: {}, planningScore: number }
+  };
+
+  const Sections = [
+    { key: 's1', label: '1. Research & Hypothesis (P1, M1)' },
+    { key: 's2', label: '2. Plan & Risk (P2, P3, M2, D1)' },
+    { key: 's3', label: '3. Perform & Record (P4, P6, D2)' },
+    { key: 's4', label: '4. Process & Interpret (P7, P8, M4, M5, D3, D4)' },
+    { key: 's5', label: '5. Evaluation & Improvements (P12, M6, D5)' }
+  ];
+
+  function ensurePatientState(pid) {
+    if (!AppState.patients[pid]) {
+      AppState.patients[pid] = {
+        selectedTests: new Set(),
+        results: {},
+        scores: { P1M1:0, P2P3M2D1:0, P4P6D2:0, P7P8M4M5D3D4:0, P12M6D5:0 },
+        mcqAnswers: {},
+        planningScore: 0,
+      };
+    }
+    return AppState.patients[pid];
+  }
+
+  function patientById(id){ return patients.find(p=>p.id===id); }
+  function testById(id){ return tests.find(t=>t.id===id); }
+
+  function switchScreen(id){
+    document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+  }
+
+  function fmtRange([lo, hi], unit){ return `${lo}\u2013${hi} ${unit}`; }
+
+  // Scoring helper
+  function addScore(pid, cluster, points){ ensurePatientState(pid).scores[cluster] += points; }
+
+  // ==========================
+  // RENDERERS
+  // ==========================
+  function renderPatientCards(){
+    const wrap = document.getElementById('patientCards');
+    wrap.innerHTML = '';
+    patients.forEach((p, idx)=>{
+      const card = document.createElement('article');
+      card.className = 'card'; card.setAttribute('role','listitem'); card.tabIndex=0;
+      const tagHtml = p.tags.map(t=>`<span class="chip">${t}</span>`).join(' ');
+      const chipsId = `chips_${p.id}`;
+      const hideChips = idx === 0; // hide hints for first patient card
+      card.innerHTML = `
+        <h3>${p.name} <span class="small" style="color:#93c5fd;">Age ${p.age}</span></h3>
+        <div id="${chipsId}" class="chips" style="${hideChips ? 'display:none;' : ''}">${tagHtml}</div>
+        <div class="small">Symptoms: ${p.symptoms.join('; ')}</div>
+        <div class="small">Background: ${p.background}</div>
+        <div style="display:flex; gap:8px; margin-top:6px; flex-wrap: wrap;">
+          ${hideChips ? `<button class="btn ghost" data-hint="${p.id}" aria-controls="${chipsId}" aria-expanded="false">Show hint</button>` : ''}
+          <button class="btn" data-pid="${p.id}">Investigate</button>
+        </div>
+      `;
+      const invBtn = card.querySelector('button[data-pid]');
+      if (invBtn) invBtn.addEventListener('click', () => openDashboard(p.id));
+      if (hideChips) {
+        const hintBtn = card.querySelector(`button[data-hint="${p.id}"]`);
+        const chipsEl = card.querySelector(`#${chipsId}`);
+        if (hintBtn && chipsEl) {
+          hintBtn.addEventListener('click', () => {
+            const hidden = chipsEl.style.display === 'none';
+            chipsEl.style.display = hidden ? 'flex' : 'none';
+            hintBtn.setAttribute('aria-expanded', hidden ? 'true' : 'false');
+            hintBtn.textContent = hidden ? 'Hide hint' : 'Show hint';
+          });
+        }
+      }
+      card.addEventListener('keypress',(e)=>{ if(e.key==='Enter') openDashboard(p.id)});
+      wrap.appendChild(card);
+    });
+  }
+
+  function openDashboard(pid){
+    AppState.currentPatientId = pid;
+    AppState.currentSectionIndex = 0;
+    ensurePatientState(pid);
+    renderDashboard();
+    switchScreen('screen-dashboard');
+  }
+
+  function renderDashboard(){
+    const pid = AppState.currentPatientId; const p = patientById(pid);
+    document.getElementById('patientSummary').innerHTML = `
+      <span class="pill">${p.name}</span>
+      <span class="pill">Age ${p.age}</span>
+      <span class="pill">Symptoms: ${p.symptoms.slice(0,3).join(', ')}${p.symptoms.length>3?'…':''}</span>
+    `;
+
+    // Tabs
+    const tabs = document.getElementById('tabs'); tabs.innerHTML = '';
+    Sections.forEach((s, idx)=>{
+      const btn = document.createElement('button');
+      btn.className = 'tab' + (idx===AppState.currentSectionIndex?' active':'');
+      btn.textContent = s.label;
+      btn.addEventListener('click', ()=>{ AppState.currentSectionIndex = idx; renderDashboard(); });
+      tabs.appendChild(btn);
+    });
+
+    // Progress
+    const prog = document.getElementById('progressDots'); prog.innerHTML='';
+    Sections.forEach((_, idx)=>{
+      const d = document.createElement('div');
+      d.className = 'dot' + (idx<AppState.currentSectionIndex? ' done': idx===AppState.currentSectionIndex?' current':'');
+      prog.appendChild(d);
+    });
+
+    renderSection();
+  }
+
+  function sectionHeader(html){
+    return `<div class="small" style="display:flex; gap:8px; align-items:center; margin-bottom:6px;">
+      <span class="pill">${Sections[AppState.currentSectionIndex].label}</span>
+    </div>${html}`;
+  }
+
+  // SECTION 1: Research & Hypothesis
+  function renderSection1(){
+    const pid = AppState.currentPatientId; const p = patientById(pid);
+    const s1Qs = mcqBank.section1.filter(q=> q.patient===pid);
+    const html = `
+      <div class="two-col">
+        <div>
+          <h2>Patient summary</h2>
+          <ul class="list small">
+            <li><strong>Symptoms</strong>: ${p.symptoms.join(', ')}</li>
+            <li><strong>Background</strong>: ${p.background}</li>
+          </ul>
+          <p class="small">Consider multiple plausible causes (P1), then identify the most likely with justification (M1).</p>
+        </div>
+        <div>
+          ${renderMCQList(s1Qs)}
+        </div>
+      </div>
+    `;
+    return sectionHeader(html);
+  }
+
+  // SECTION 2: Plan & Risk
+  function renderSection2(){
+    const pid = AppState.currentPatientId; const pState = ensurePatientState(pid); const p = patientById(pid);
+    const categories = Array.from(new Set(tests.map(t=>t.category)));
+    const list = categories.map(cat=>{
+      const catTests = tests.filter(t=>t.category===cat);
+      const items = catTests.map(t=>{
+        const checked = pState.selectedTests.has(t.id)?'checked':'';
+        const rec = p.recommendedTests.includes(t.id)? '<span class="pill" style="margin-left:6px;">Suggested</span>':'';
+        return `<div class="test-item">
+          <div style="display:flex; justify-content: space-between; gap:8px; align-items:center;">
+            <label style="display:flex; align-items:center; gap:8px;">
+              <input type="checkbox" data-testid="${t.id}" ${checked} />
+              <strong>${t.name}</strong> <span class="small" style="color:#a7f3d0;">${t.category}</span> ${rec}
+            </label>
+            <button class="btn ghost small" data-details="${t.id}">Details</button>
+          </div>
+          <div class="method small"><strong>Method:</strong> <ul class="list small">${t.method.map(s=>`<li>${s}</li>`).join('')}</ul></div>
+          <div class="hazards small"><strong>Risks/hazards:</strong> ${t.hazards.join('; ')}</div>
+        </div>`;
+      }).join('');
+      return `<h3 style="margin:8px 0 6px;">${cat}</h3><div class="test-list">${items}</div>`;
+    }).join('');
+
+    const qs = mcqBank.section2.filter(q=> q.patient==='all');
+
+    const html = `
+      <div class="two-col">
+        <div>
+          <h2>Select tests for ${p.name}</h2>
+          <p class="small">Choose the most appropriate tests for the suspected conditions. Review method steps and hazards (P2/P3). Your planning score improves when you select efficient, relevant tests and identify appropriate controls (M2/D1).</p>
+          ${list}
+        </div>
+        <div>
+          <h2>Planning checks</h2>
+          ${renderMCQList(qs)}
+        </div>
+      </div>
+    `;
+
+    // Attach listeners post-render
+    setTimeout(()=>{
+      document.querySelectorAll('input[data-testid]').forEach(chk=>{
+        chk.addEventListener('change', (e)=>{
+          const id = e.target.getAttribute('data-testid');
+          if (e.target.checked) pState.selectedTests.add(id); else pState.selectedTests.delete(id);
+          updatePlanningScore();
+        })
+      });
+      document.querySelectorAll('button[data-details]').forEach(btn=>{
+        btn.addEventListener('click', ()=>{
+          const t = testById(btn.getAttribute('data-details'));
+          showInfo(`${t.name}`, `<p><strong>Type:</strong> ${t.type}</p><p><strong>Category:</strong> ${t.category}</p><p class="small"><strong>Method key points:</strong></p><ul class="list small">${t.method.map(s=>`<li>${s}</li>`).join('')}</ul><p class="small"><strong>Hazards:</strong> ${t.hazards.join('; ')}`);
+        })
+      })
+    });
+
+    return sectionHeader(html);
+  }
+
+  function updatePlanningScore(){
+    const pid = AppState.currentPatientId; const p = patientById(pid); const ps = ensurePatientState(pid);
+    const selected = Array.from(ps.selectedTests);
+    // Score: +1 for each recommended test selected, -0.5 for each unrelated beyond 4 choices, clamp >=0
+    let score = 0;
+    selected.forEach(id=>{ if (p.recommendedTests.includes(id)) score += 1; });
+    if (selected.length > p.recommendedTests.length) score -= (selected.length - p.recommendedTests.length)*0.5;
+    ps.planningScore = Math.max(0, Math.round(score));
+  }
+
+  // SECTION 3: Perform & Record
+  function renderSection3(){
+    const pid = AppState.currentPatientId; const ps = ensurePatientState(pid); const p = patientById(pid);
+    const chosen = Array.from(ps.selectedTests);
+    if (chosen.length === 0){
+      return sectionHeader(`<p class="small">No tests selected yet. Pick tests in <em>Plan & Risk</em> first.</p>`);
+    }
+    const blocks = chosen.map(id=>{
+      const t = testById(id);
+      const rKey = `t_${id}`;
+      const existing = ps.results[rKey];
+      let block = `<div class="test-item">
+        <div style="display:flex; justify-content:space-between; align-items:center; gap:8px;">
+          <div><strong>${t.name}</strong> <span class="small" style="color:#a7f3d0;">${t.category}</span></div>
+          <div>
+            <button class="btn ghost small" data-run="${id}">Run test</button>
+          </div>
+        </div>`;
+      if (existing){
+        if (t.type === 'qualitative'){
+          block += `<div class="small">Outcome: <strong>${existing.outcome}</strong></div>`;
+        } else {
+          // Quantitative
+          block += `<div class="small">Wavelength: ${existing.wavelength || '—'}</div>`;
+          if (existing.titres){
+            block += `<table><thead><tr><th>Titre (mL)</th></tr></thead><tbody>${existing.titres.map(v=>`<tr><td>${v}</td></tr>`).join('')}</tbody></table>`;
+          }
+          if (existing.repeats){
+            block += `<table><thead><tr><th>Reading (${existing.unit})</th><th>Absorbance</th></tr></thead><tbody>${existing.repeats.map((v,i)=>`<tr><td>${v}</td><td>${existing.absorbances[i]}</td></tr>`).join('')}</tbody></table>`;
+          }
+        }
+      }
+      block += `</div>`;
+      return block;
+    }).join('');
+
+    const qs = mcqBank.section3.filter(q=> q.patient==='all');
+    const html = `
+      <div class="two-col">
+        <div>
+          <h2>Run selected tests</h2>
+          ${blocks}
+        </div>
+        <div>
+          <h2>Practical checks</h2>
+          ${renderMCQList(qs)}
+        </div>
+      </div>
+    `;
+
+    setTimeout(()=>{
+      document.querySelectorAll('button[data-run]').forEach(btn=>{
+        btn.addEventListener('click', ()=>{
+          const id = btn.getAttribute('data-run');
+          const t = testById(id);
+          const sim = t.simulate({ patientId: pid });
+          ensurePatientState(pid).results[`t_${id}`] = sim;
+          renderDashboard();
+        })
+      })
+    });
+
+    return sectionHeader(html);
+  }
+
+  // SECTION 4: Process & Interpret
+  function renderSection4(){
+    const pid = AppState.currentPatientId; const ps = ensurePatientState(pid); const p = patientById(pid);
+    const results = ps.results;
+
+    const quantBlocks = Object.entries(results).filter(([k,v])=> v && (v.titres || v.repeats)).map(([k,v])=>{
+      // Mean calculator for either titres or repeats
+      const values = v.titres || v.repeats;
+      const mean = values && values.length? (values.reduce((a,b)=>a+b,0)/values.length) : null;
+      const hint = v.titres ? 'Use concordant titres' : 'Use all valid repeats';
+      return `<div class="test-item">
+        <div><strong>Process: ${k.replace('t_','')}</strong> <span class="small">${hint}</span></div>
+        <div class="small">Values: ${values ? values.join(', ') : '—'}</div>
+        <div style="display:flex; gap:8px; align-items:center; margin-top:6px;">
+          <label class="small">Mean: <input inputmode="decimal" style="width:120px" id="mean_${k}" placeholder="Enter mean" aria-label="Mean entry for ${k}"/></label>
+          <button class="btn ghost small" data-check-mean="${k}" aria-label="Check mean for ${k}">Check</button>
+          <span class="small" id="meanfb_${k}"></span>
+        </div>
+      </div>`;
+    }).join('');
+
+    const refHtml = `
+      <div class="test-item">
+        <div><strong>Reference ranges</strong> <span class="small">Biological variability: age, sex, time of day, and method can shift ranges.</span></div>
+        <table>
+          <thead><tr><th>Analyte</th><th>Matrix</th><th>Reference</th></tr></thead>
+          <tbody>
+            <tr><td>Glucose</td><td>Blood</td><td>${fmtRange(referenceRanges.blood.glucose.normal, referenceRanges.blood.glucose.unit)}</td></tr>
+            <tr><td>Glucose</td><td>Urine</td><td>${fmtRange(referenceRanges.urine.glucose.normal, referenceRanges.urine.glucose.unit)}</td></tr>
+            <tr><td>Bilirubin</td><td>Blood</td><td>${fmtRange(referenceRanges.blood.bilirubin.normal, referenceRanges.blood.bilirubin.unit)}</td></tr>
+            <tr><td>Sodium</td><td>Blood</td><td>${fmtRange(referenceRanges.blood.sodium.normal, referenceRanges.blood.sodium.unit)}</td></tr>
+            <tr><td>Protein</td><td>Urine</td><td>${fmtRange(referenceRanges.urine.protein.normal, referenceRanges.urine.protein.unit)}</td></tr>
+          </tbody>
+        </table>
+      </div>
+    `;
+
+    const qs = mcqBank.section4.filter(q=> q.patient==='all');
+
+    const html = `
+      <div class="two-col">
+        <div>
+          <h2>Calculate & compare</h2>
+          ${quantBlocks || '<p class="small">No quantitative results yet. Run colorimetry/titration to unlock tasks.</p>'}
+          <div class="test-item">
+            <div><strong>Equipment uncertainty</strong> <span class="small">Burette ±0.05 mL typical; combine as appropriate (start+end).</span></div>
+            <label class="small">Example: % uncertainty at 24.80 mL: <input inputmode="decimal" style="width:160px" id="uncert_in" placeholder="Enter %"/> <button class="btn ghost small" id="uncert_check">Check</button></label>
+            <div class="small" id="uncert_fb"></div>
+          </div>
+          ${refHtml}
+        </div>
+        <div>
+          <h2>Interpretation checks</h2>
+          ${renderMCQList(qs)}
+        </div>
+      </div>
+    `;
+
+    setTimeout(()=>{
+      // Mean checks
+      Object.entries(results).forEach(([k,v])=>{
+        if (v && (v.titres || v.repeats)){
+          const values = v.titres || v.repeats; const trueMean = +(values.reduce((a,b)=>a+b,0)/values.length).toFixed(v.titres?2:1);
+          const btn = document.querySelector(`[data-check-mean="${k}"]`);
+          const inEl = document.getElementById(`mean_${k}`);
+          const fb = document.getElementById(`meanfb_${k}`);
+          if (btn) btn.addEventListener('click', ()=>{
+            const val = parseFloat(inEl.value);
+            if (isNaN(val)) { fb.textContent = 'Enter a number'; fb.style.color = '#fca5a5'; return; }
+            const ok = Math.abs(val - trueMean) <= (v.titres?0.05:0.2);
+            fb.textContent = ok ? `Correct. Mean ≈ ${trueMean}` : `Not quite. Mean ≈ ${trueMean}`;
+            fb.style.color = ok ? '#86efac' : '#fca5a5';
+            addScore(pid, 'P7P8M4M5D3D4', ok?1:0);
+          });
+        }
+      });
+      const uBtn = document.getElementById('uncert_check');
+      const uIn = document.getElementById('uncert_in');
+      const uFb = document.getElementById('uncert_fb');
+      if (uBtn) uBtn.addEventListener('click', ()=>{
+        const v = parseFloat(uIn.value);
+        const target = 0.4; // % as per MCQ explanation
+        if (isNaN(v)) { uFb.textContent = 'Enter a percentage value'; uFb.style.color='#fca5a5'; return; }
+        const ok = Math.abs(v - target) < 0.2;
+        uFb.textContent = ok? 'Correct: ~0.4% for start+end readings.' : 'Consider both start and end readings → ~0.4%.';
+        uFb.style.color = ok? '#86efac' : '#fca5a5';
+        addScore(pid, 'P7P8M4M5D3D4', ok?1:0);
+      });
+    });
+
+    return sectionHeader(html);
+  }
+
+  // SECTION 5: Evaluation & Improvements
+  function renderSection5(){
+    const qs = mcqBank.section5.filter(q=> q.patient==='all');
+    const pid = AppState.currentPatientId; const ps = ensurePatientState(pid);
+    const clusterScores = ps.scores;
+    const html = `
+      <div class="two-col">
+        <div>
+          <h2>Evaluate your investigation</h2>
+          <p class="small">Consider reliability (repeats, uncertainty), validity (appropriate methods, controls), and sources (reference ranges used).</p>
+          ${renderMCQList(qs)}
+        </div>
+        <div>
+          <h2>Patient summary</h2>
+          <table>
+            <thead><tr><th>Criterion cluster</th><th>Score</th></tr></thead>
+            <tbody>
+              <tr><td>Research & hypothesis (P1/M1)</td><td>${clusterScores.P1M1}</td></tr>
+              <tr><td>Planning & risk (P2/P3/M2/D1)</td><td>${clusterScores.P2P3M2D1 + (ps.planningScore||0)}</td></tr>
+              <tr><td>Practical performance & data (P4/P6/D2)</td><td>${clusterScores.P4P6D2}</td></tr>
+              <tr><td>Processing & interpretation (P7/P8/M4/M5/D3/D4)</td><td>${clusterScores.P7P8M4M5D3D4}</td></tr>
+              <tr><td>Evaluation & improvements (P12/M6/D5)</td><td>${clusterScores.P12M6D5}</td></tr>
+            </tbody>
+          </table>
+          <div class="small" style="margin-top:8px;">Planning score bonus (tests chosen): <strong>${ps.planningScore}</strong></div>
+          <div style="margin-top:12px; display:flex; gap:8px; flex-wrap:wrap;">
+            <button class="btn secondary" id="finishPatientBtn">Finish patient</button>
+          </div>
+        </div>
+      </div>
+    `;
+
+    setTimeout(()=>{
+      const btn = document.getElementById('finishPatientBtn');
+      if (btn) btn.addEventListener('click', ()=> showOverallSummary());
+    });
+
+    return sectionHeader(html);
+  }
+
+  function renderSection(){
+    const idx = AppState.currentSectionIndex;
+    const el = document.getElementById('sectionContent');
+    let html = '';
+    if (idx===0) html = renderSection1();
+    if (idx===1) html = renderSection2();
+    if (idx===2) html = renderSection3();
+    if (idx===3) html = renderSection4();
+    if (idx===4) html = renderSection5();
+    el.innerHTML = html;
+    // Ensure MCQ handlers attach after content render
+    bindMCQHandlers();
+    // Prev/Next buttons
+    document.getElementById('prevSectionBtn').disabled = idx===0;
+    document.getElementById('nextSectionBtn').disabled = idx===Sections.length-1;
+  }
+
+  // MCQ render engine
+  function renderMCQList(questions){
+    return questions.map(q=>{
+      const id = `q_${q.id}`;
+      const multi = !!q.multi;
+      const name = id;
+      const opts = q.options.map((opt, i)=>{
+        const type = multi? 'checkbox':'radio';
+        return `<label class="option"><input type="${type}" name="${name}" value="${i}" aria-labelledby="${id}_text"/>${opt}</label>`;
+      }).join('');
+      return `<div class="mcq" data-qid="${q.id}">
+        <div id="${id}_text" class="q">${q.text}</div>
+        <div class="options">${opts}</div>
+        <div>
+          <button class="btn ghost small" data-check="${q.id}">Check</button>
+        </div>
+        <div class="feedback" id="fb_${q.id}" role="status" aria-live="polite"></div>
+      </div>`;
+    }).join('');
+  }
+
+  function bindMCQHandlers(){
+    document.querySelectorAll('[data-check]').forEach(btn=>{
+      btn.addEventListener('click', ()=>{
+        const qid = btn.getAttribute('data-check');
+        const q = findQuestionById(qid);
+        const container = btn.closest('.mcq');
+        const inputs = container.querySelectorAll('input');
+        let selected = [];
+        inputs.forEach(i=>{ if (i.checked) selected.push(+i.value); });
+        const correct = Array.isArray(q.correct) ? q.correct.slice().sort().join(',') : String(q.correct);
+        const chosen = Array.isArray(q.correct) ? selected.slice().sort().join(',') : (selected[0]!==undefined? String(selected[0]):'');
+        const ok = correct === chosen;
+        const fb = document.getElementById(`fb_${qid}`);
+        fb.classList.add('show'); fb.classList.toggle('error', !ok);
+        fb.textContent = (ok? 'Correct. ': 'Not quite. ') + q.explanation;
+        // Score per cluster
+        const pid = AppState.currentPatientId;
+        addScore(pid, q.cluster, ok? 1 : 0);
+      })
+    })
+  }
+
+  function findQuestionById(id){
+    const groups = Object.values(mcqBank);
+    for (const arr of groups){ const q = arr.find(x=>x.id===id); if (q) return q; }
+    return null;
+  }
+
+  // ==========================
+  // SUMMARY
+  // ==========================
+  function showOverallSummary(){
+    const container = document.getElementById('overallSummary');
+    const rows = patients.map(p=>{
+      const ps = ensurePatientState(p.id);
+      const s = ps.scores; const total = s.P1M1 + s.P2P3M2D1 + ps.planningScore + s.P4P6D2 + s.P7P8M4M5D3D4 + s.P12M6D5;
+      return `<tr>
+        <td>${p.name}</td>
+        <td>${s.P1M1}</td>
+        <td>${s.P2P3M2D1 + ps.planningScore}</td>
+        <td>${s.P4P6D2}</td>
+        <td>${s.P7P8M4M5D3D4}</td>
+        <td>${s.P12M6D5}</td>
+        <td><strong>${total}</strong></td>
+      </tr>`;
+    }).join('');
+    const overall = patients.reduce((acc,p)=>{
+      const ps = ensurePatientState(p.id); const s = ps.scores; return acc + s.P1M1 + s.P2P3M2D1 + ps.planningScore + s.P4P6D2 + s.P7P8M4M5D3D4 + s.P12M6D5; }, 0);
+
+    container.innerHTML = `
+      <table>
+        <thead><tr><th>Patient</th><th>P1/M1</th><th>P2/P3/M2/D1</th><th>P4/P6/D2</th><th>P7/P8/M4/M5/D3/D4</th><th>P12/M6/D5</th><th>Total</th></tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+      <div class="panel" style="margin-top:12px;">
+        <strong>Overall score:</strong> ${overall}
+        <p class="small" style="margin:6px 0 0;">You may be strongest at selecting appropriate tests if planning scores are high; focus practice on data processing and uncertainty if Section 4 scores are lower.</p>
+      </div>
+    `;
+
+    switchScreen('screen-summary');
+  }
+
+  // ==========================
+  // HELP / INFO
+  // ==========================
+  function showInfo(title, html){
+    const dlg = document.getElementById('helpDialog');
+    const t = dlg.querySelector('#helpTitle');
+    t.textContent = title; // temporarily reuse dialog for details
+    const list = dlg.querySelector('ul');
+    list.outerHTML = `<div class="small">${html}</div>`;
+    const close = document.getElementById('helpClose');
+    close.textContent = 'Close';
+    if (!dlg.open) dlg.showModal();
+    // restore on close
+    close.onclick = ()=>{
+      dlg.close();
+      // restore default content
+      dlg.querySelector('div.small').outerHTML = `<ul class="list small">
+        <li><strong>Reference range</strong>: values expected for a healthy population; may vary with age, sex, time of day.</li>
+        <li><strong>Qualitative vs quantitative</strong>: qualitative = descriptive outcome (e.g. colour change); quantitative = numerical measurement (e.g. concentration).</li>
+        <li><strong>Percentage uncertainty</strong>: (absolute uncertainty ÷ measured value) × 100%. Combine where appropriate.</li>
+        <li><strong>Chromatography</strong>: separates components by differential movement along a stationary phase; compare Rf values with references.</li>
+        <li><strong>Controls and blanks</strong>: blank contains all reagents except analyte; checks interference and baseline.</li>
+      </ul>`;
+      document.getElementById('helpTitle').textContent = 'Quick definitions';
+      document.getElementById('helpClose').textContent = 'Close';
+    }
+  }
+
+  function resetGame(){
+    AppState.currentPatientId = null; AppState.currentSectionIndex = 0; AppState.patients = {};
+    switchScreen('screen-intro');
+  }
+
+  // ==========================
+  // EVENT WIRING
+  // ==========================
+  function init(){
+    renderPatientCards();
+    document.getElementById('startBtn').addEventListener('click', ()=> switchScreen('screen-patients'));
+    document.getElementById('quickStartBtn').addEventListener('click', ()=> switchScreen('screen-patients'));
+    document.getElementById('backToPatientsBtn').addEventListener('click', ()=> switchScreen('screen-patients'));
+    document.getElementById('nextSectionBtn').addEventListener('click', ()=>{ AppState.currentSectionIndex=Math.min(Sections.length-1, AppState.currentSectionIndex+1); renderDashboard(); bindMCQHandlers(); });
+    document.getElementById('prevSectionBtn').addEventListener('click', ()=>{ AppState.currentSectionIndex=Math.max(0, AppState.currentSectionIndex-1); renderDashboard(); bindMCQHandlers(); });
+    document.getElementById('helpBtn').addEventListener('click', ()=> document.getElementById('helpDialog').showModal());
+    document.getElementById('helpClose').addEventListener('click', ()=> document.getElementById('helpDialog').close());
+    document.getElementById('resetBtn').addEventListener('click', resetGame);
+    document.getElementById('resetBtn2').addEventListener('click', resetGame);
+    document.getElementById('goPatientsAgain').addEventListener('click', ()=> switchScreen('screen-patients'));
+    bindMCQHandlers();
+  }
+
+  document.addEventListener('DOMContentLoaded', init);
+  </script>
+</body>
+</html>

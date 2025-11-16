@@ -141,6 +141,31 @@
 
     .pill { display: inline-block; padding: 4px 8px; border-radius: 999px; font-size: 12px; border: 1px solid #223044; background: #0f1a31; color: #c7d2fe; }
 
+    /* Patient summary: use lighter, non-dark chips for clarity */
+    #patientSummary { display:flex; gap:6px; flex-wrap:wrap; white-space:normal; overflow:visible; }
+    #patientSummary .pill { 
+      background: linear-gradient(180deg, rgba(248,250,252,0.95), rgba(241,245,249,0.88));
+      color: #0b162c;
+      border-color: rgba(15,23,42,0.18);
+      box-shadow: 0 1px 0 rgba(255,255,255,0.8) inset, 0 4px 14px rgba(255,255,255,0.06);
+      white-space: normal;
+    }
+    /* Name pill — soft sky */
+    #patientSummary .pill:nth-child(1){
+      background: linear-gradient(180deg, rgba(186,230,253,0.98), rgba(125,211,252,0.88));
+      color:#05243a; border-color: rgba(2,44,77,0.25);
+    }
+    /* Age pill — also soft sky (blue) */
+    #patientSummary .pill:nth-child(2){
+      background: linear-gradient(180deg, rgba(186,230,253,0.98), rgba(125,211,252,0.88));
+      color:#05243a; border-color: rgba(2,44,77,0.25);
+    }
+    /* Symptoms pill — soft green */
+    #patientSummary .pill:nth-child(3){
+      background: linear-gradient(180deg, rgba(186,230,253,0.98), rgba(125,211,252,0.88));
+      color:#063018; border-color: rgba(2,44,77,0.25);
+    }
+
     .help { display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px; border-radius: 999px; background: #0c1426; border: 1px solid #223044; color: #7dd3fc; font-weight: 800; cursor: pointer; }
 
     dialog { border: 1px solid var(--border); background: #0a1221; color: var(--text); border-radius: 12px; padding: 16px; width: min(600px, 92vw); }
@@ -208,7 +233,7 @@
         <div class="panel">
           <div style="display:flex; justify-content:space-between; gap:10px; align-items: center;">
             <div>
-              <h2 id="dash-title" style="margin:0 0 6px;">Investigation Dashboard</h2>
+              <h2 id="dash-title" class="title" style="margin:0 0 6px; font-size:1.4rem;">Investigation Dashboard</h2>
               <div id="patientSummary" class="small"></div>
             </div>
             <div>
@@ -358,6 +383,16 @@
       ],
       hazards: ['Barium chloride: toxic', 'Dilute HCl: irritant'],
       simulate: (ctx) => ({ outcome: 'No precipitate (SO₄²⁻ absent)', positive: false })
+    },
+    {
+      id: 'anions_agno3', category: 'Qualitative ion tests', name: 'Anions: chloride with AgNO₃', type: 'qualitative',
+      method: [
+        'Acidify the sample with dilute nitric acid (to remove carbonates).',
+        'Add a few drops of silver nitrate solution.',
+        'A white precipitate of AgCl indicates chloride; confirm by dissolving in dilute ammonia (AgCl soluble).'
+      ],
+      hazards: ['Silver nitrate: oxidising/corrosive; can stain skin', 'Dilute nitric acid: corrosive'],
+      simulate: (ctx) => ({ outcome: 'White ppt forms; dissolves in dilute ammonia (Cl⁻ present)', positive: true })
     },
 
     // Chromatography
@@ -673,13 +708,15 @@
       const tagHtml = p.tags.map(t=>`<span class="chip">${t}</span>`).join(' ');
       const chipsId = `chips_${p.id}`;
       const hideChips = true; // hide hints for all patient cards by default
+      const histId = `hist_${p.id}`;
       card.innerHTML = `
         <h3>${p.name} <span class="small" style="color:#93c5fd;">Age ${p.age}</span></h3>
         <div id="${chipsId}" class="chips" style="${hideChips ? 'display:none;' : ''}">${tagHtml}</div>
         <div class="small">Symptoms: ${p.symptoms.join('; ')}</div>
-        <div class="small">Background: ${p.background}</div>
+        <div id="${histId}" class="small" style="display:none;">Background: ${p.background}</div>
         <div style="display:flex; gap:8px; margin-top:6px; flex-wrap: wrap;">
           <button class=\"btn ghost\" data-hint=\"${p.id}\" aria-controls=\"${chipsId}\" aria-expanded=\"false\">Show hint</button>
+          <button class=\"btn ghost\" data-history=\"${p.id}\" aria-controls=\"${histId}\" aria-expanded=\"false\">Show history</button>
           <button class="btn" data-pid="${p.id}">Investigate</button>
         </div>
       `;
@@ -693,6 +730,16 @@
           chipsEl.style.display = hidden ? 'flex' : 'none';
           hintBtn.setAttribute('aria-expanded', hidden ? 'true' : 'false');
           hintBtn.textContent = hidden ? 'Hide hint' : 'Show hint';
+        });
+      }
+      const histBtn = card.querySelector(`button[data-history=\"${p.id}\"]`);
+      const histEl = card.querySelector(`#${histId}`);
+      if (histBtn && histEl) {
+        histBtn.addEventListener('click', () => {
+          const hidden = histEl.style.display === 'none';
+          histEl.style.display = hidden ? 'block' : 'none';
+          histBtn.setAttribute('aria-expanded', hidden ? 'true' : 'false');
+          histBtn.textContent = hidden ? 'Hide history' : 'Show history';
         });
       }
       card.addEventListener('keypress',(e)=>{ if(e.key==='Enter') openDashboard(p.id)});

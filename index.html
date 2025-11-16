@@ -161,6 +161,20 @@
     dialog::backdrop { background: rgba(2,6,23,0.72); backdrop-filter: blur(2px); }
 
     .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+
+    /* Research wizard (fake-PubMed) */
+    .wizard { display: grid; gap: 12px; }
+    .wizard .step { border: 1px solid var(--border); background: #0c1426; border-radius: 10px; padding: 12px; }
+    .wizard h3 { margin: 0 0 6px; font-size: 1rem; }
+    .wizard .row { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+    .wizard input[type="text"] { background:#0a1120; color:var(--text); border:1px solid #21304b; border-radius:8px; padding:8px 10px; min-width:260px; }
+    .score-pill { display:inline-flex; align-items:center; gap:6px; padding:4px 8px; border-radius:999px; border:1px solid #21304b; background:#0f1a31; font-size:12px; }
+    .article { border-top:1px solid #1f2937; padding:8px 0; }
+    .article:first-child { border-top:0; }
+    .article .title { font-size:1rem; background: none; color: #c7d2fe; -webkit-background-clip: initial; background-clip: initial; }
+    .abstract { display:none; color: var(--text-dim); margin-top:6px; }
+    .article header { display:flex; justify-content:space-between; gap:8px; align-items:flex-start; }
+    .hint { color:#93c5fd; }
   </style>
 </head>
 <body>
@@ -272,6 +286,232 @@
   </dialog>
 
   <script>
+  // ==========================
+  // RESEARCH & HYPOTHESIS (fake-PubMed) DATA AND FUNCTIONS
+  // ==========================
+  // All data below is editable by teachers. No network calls are made.
+
+  /*
+    Articles database for fake literature search.
+    Fields:
+    - id, title, journal, year, type, abstract, keywords[], patients[], relevanceScore (true relevance), reliabilityScore (source quality)
+  */
+  const articles = [
+    // Patient A (diabetes / glycosuria)
+    {
+      id: 'a1',
+      title: 'Glycosuria as a Marker of Diabetes Mellitus in Adolescents and Adults',
+      journal: 'Journal of Clinical Endocrinology',
+      year: 2020,
+      type: 'review',
+      abstract: 'Explores causes of glucose in urine including diabetes mellitus; pathophysiology linking hyperglycaemia to renal threshold and urine glucose detection.',
+      keywords: ['diabetes mellitus','diabetes','glycosuria','urine glucose','hyperglycaemia','renal threshold'],
+      patients: ['A'],
+      relevanceScore: 10,
+      reliabilityScore: 9
+    },
+    {
+      id: 'a1b',
+      title: 'Urinalysis in Primary Care: Interpreting Glucose and Protein',
+      journal: 'British Primary Care Medicine',
+      year: 2017,
+      type: 'review',
+      abstract: 'Overview of common urine dipstick findings including glucose (glycosuria) and their diagnostic value in diabetes screening.',
+      keywords: ['urinalysis','urine glucose','glycosuria','screening','dipstick'],
+      patients: ['A','C'],
+      relevanceScore: 7,
+      reliabilityScore: 7
+    },
+    // Red herrings for A
+    {
+      id: 'aH1',
+      title: 'Seasonal Allergies and Daytime Fatigue: A Community Survey',
+      journal: 'Allergy & Health',
+      year: 2016,
+      type: 'original',
+      abstract: 'Associations between allergic rhinitis and reported fatigue; no biochemical measures were collected.',
+      keywords: ['allergies','rhinitis','fatigue'],
+      patients: ['A'],
+      relevanceScore: 2,
+      reliabilityScore: 5
+    },
+
+    // Patient B (PKU / phenylalanine)
+    {
+      id: 'b1',
+      title: 'Phenylketonuria in Young Adults: Seizures, Skin Changes and Dietary Control',
+      journal: 'Metabolic Disorders Journal',
+      year: 2019,
+      type: 'original',
+      abstract: 'PKU presenting with seizures, irritability and hypopigmented skin; highlights phenylalanine restriction and monitoring.',
+      keywords: ['phenylketonuria','PKU','phenylalanine','seizures','metabolic disorder','skin'],
+      patients: ['B'],
+      relevanceScore: 10,
+      reliabilityScore: 8
+    },
+    {
+      id: 'b1b',
+      title: 'Phenylalanine Metabolism and Neurological Outcomes',
+      journal: 'Journal of Inherited Metabolic Disease',
+      year: 2018,
+      type: 'review',
+      abstract: 'Mechanisms by which elevated phenylalanine impairs neurotransmitter synthesis, with links to seizures and cognitive effects.',
+      keywords: ['phenylalanine','PKU','neurotransmitters','seizures'],
+      patients: ['B'],
+      relevanceScore: 9,
+      reliabilityScore: 9
+    },
+    // Red herrings for B
+    {
+      id: 'bH1',
+      title: 'Temporal Lobe Epilepsy: Adult-Onset Case Series',
+      journal: 'Neurology Today',
+      year: 2015,
+      type: 'original',
+      abstract: 'Adult temporal lobe epilepsy phenotypes without metabolic aetiology; limited applicability to inherited disorders.',
+      keywords: ['epilepsy','temporal lobe','adult onset'],
+      patients: ['B'],
+      relevanceScore: 3,
+      reliabilityScore: 6
+    },
+
+    // Patient C (hypercalcaemia)
+    {
+      id: 'c1',
+      title: 'Hypercalcaemia: Fatigue, Weakness and Bone Pain in Outpatients',
+      journal: 'British Medical Bulletin',
+      year: 2018,
+      type: 'review',
+      abstract: 'Clinical features of hypercalcaemia including muscle weakness, bone pain and easy bruising; outlines investigation pathways.',
+      keywords: ['hypercalcaemia','calcium','fatigue','weakness','bone pain','bruising'],
+      patients: ['C'],
+      relevanceScore: 10,
+      reliabilityScore: 9
+    },
+    // Red herrings for C
+    {
+      id: 'cH1',
+      title: 'Iron Deficiency Anaemia and Fatigue in Students',
+      journal: 'Clinical Nutrition Reports',
+      year: 2017,
+      type: 'original',
+      abstract: 'Prevalence of iron deficiency and correlations with tiredness; not directly related to calcium dysregulation.',
+      keywords: ['iron deficiency','anaemia','fatigue'],
+      patients: ['C'],
+      relevanceScore: 2,
+      reliabilityScore: 6
+    },
+
+    // Additional relevant options
+    {
+      id: 'a1c',
+      title: 'Urine Glucose Screening for Early Detection of Diabetes Mellitus',
+      journal: 'International Journal of Preventive Medicine',
+      year: 2021,
+      type: 'review',
+      abstract: 'Assesses the role of urine glucose screening and follow-up blood tests in early diabetes detection; discusses sensitivity and limitations.',
+      keywords: ['urine glucose','screening','diabetes mellitus','glycosuria','hyperglycaemia'],
+      patients: ['A'],
+      relevanceScore: 8,
+      reliabilityScore: 8
+    },
+    {
+      id: 'c1b',
+      title: 'Primary Hyperparathyroidism: A Common Cause of Hypercalcaemia',
+      journal: 'Endocrine Practice Review',
+      year: 2016,
+      type: 'review',
+      abstract: 'Summarises how elevated parathyroid hormone leads to hypercalcaemia with fatigue, weakness, bone pain and nephrolithiasis; outlines diagnostic approach.',
+      keywords: ['hypercalcaemia','primary hyperparathyroidism','calcium','bone pain','weakness'],
+      patients: ['C'],
+      relevanceScore: 9,
+      reliabilityScore: 8
+    }
+  ];
+
+  // Per-patient research configuration
+  const patientResearchConfig = {
+    A: {
+      name: 'Patient A',
+      targetKeywords: ['diabetes','diabetes mellitus','glycosuria','urine glucose','hyperglycaemia'],
+      discouragedKeywords: ['tired','unwell','ill','toe cut'],
+      mustIncludeAtLeastOneOf: ['urine','glucose','glycosuria'],
+      bestArticleIds: ['a1','a1b']
+    },
+    B: {
+      name: 'Patient B',
+      targetKeywords: ['phenylketonuria','PKU','phenylalanine','metabolic disorder','seizures'],
+      discouragedKeywords: ['tired','stressed'],
+      mustIncludeAtLeastOneOf: ['PKU','phenylalanine'],
+      bestArticleIds: ['b1','b1b']
+    },
+    C: {
+      name: 'Patient C',
+      targetKeywords: ['hypercalcaemia','calcium','bone pain','fatigue','bruising'],
+      discouragedKeywords: ['just tired'],
+      mustIncludeAtLeastOneOf: ['calcium','hypercalcaemia'],
+      bestArticleIds: ['c1']
+    }
+  };
+
+  /*
+    evaluateSearchQuery(patientId, query)
+    - Assesses research query quality vs patient config.
+    - Criteria mapping: Research quality → P1, M1
+  */
+  function evaluateSearchQuery(patientId, query){
+    const cfg = patientResearchConfig[patientId];
+    const q = (query||'').toLowerCase();
+    const hits = (cfg.targetKeywords||[]).filter(k=> q.includes(k.toLowerCase()));
+    const discouragedHits = (cfg.discouragedKeywords||[]).filter(k=> q.includes(k.toLowerCase()));
+    const includesRequiredConcept = (cfg.mustIncludeAtLeastOneOf||[]).some(k=> q.includes(k.toLowerCase()));
+    let score = 0;
+    score += hits.length * 2;
+    score -= discouragedHits.length * 1;
+    if (!includesRequiredConcept) score -= 2;
+    score = Math.max(0, Math.min(10, score));
+    return { score, hits, discouragedHits, includesRequiredConcept };
+  }
+
+  /*
+    searchArticles(patientId, query)
+    - Returns list of articles matching query + patient boost.
+    - Criteria mapping: Research quality → P1, M1
+  */
+  function searchArticles(patientId, query){
+    const q = (query||'').toLowerCase();
+    const scored = articles.map(a=>{
+      const kwHits = (a.keywords||[]).reduce((acc,kw)=> acc + (q.includes(kw.toLowerCase())?1:0), 0);
+      const patientBoost = (a.patients||[]).includes(patientId)? 1 : 0;
+      const relevance = kwHits + patientBoost;
+      return { ...a, _rel: relevance };
+    }).filter(a=> a._rel > 0)
+      .sort((x,y)=> y._rel - x._rel || y.reliabilityScore - x.reliabilityScore);
+    return scored;
+  }
+
+  /*
+    evaluateArticleSelection(patientId, selectedIds)
+    - Compares chosen articles vs gold standard and penalises irrelevant picks.
+    - Criteria mapping: Evidence selection & source confidence → P8, M6
+  */
+  function evaluateArticleSelection(patientId, selectedIds){
+    const cfg = patientResearchConfig[patientId];
+    const best = new Set(cfg.bestArticleIds || []);
+    const selected = new Set(selectedIds || []);
+    const correctlyChosen = Array.from(selected).filter(id=> best.has(id));
+    const missedGood = Array.from(best).filter(id=> !selected.has(id));
+    const irrelevantChosen = Array.from(selected).filter(id=>{
+      const a = articles.find(x=>x.id===id);
+      return a ? a.relevanceScore < 5 : false;
+    });
+    let score = 0;
+    score += correctlyChosen.length * 4;
+    score -= missedGood.length * 2;
+    score -= irrelevantChosen.length * 1;
+    score = Math.max(0, Math.min(10, score));
+    return { score, correctlyChosen, missedGood, irrelevantChosen };
+  }
   // ==========================
   // CONFIGURATION DATA (EDITABLE BY TEACHERS)
   // ==========================
@@ -648,7 +888,7 @@
     currentSectionIndex: 0, // 0..4
     // Per patient state
     patients: {}, // id -> { selectedTests: Set, results: {}, scores: {cluster: points}, mcqAnswers: {}, notes: {}, 
-                 //   hypothesis: {}, planningScore: number }
+                 //   planningScore: number, research: { query, queryScore, selectionScore, selectedIds[], hypothesisChoice, hypothesisCorrect, researchScore } }
   };
 
   const Sections = [
@@ -667,6 +907,7 @@
         scores: { P1M1:0, P2P3M2D1:0, P4P6D2:0, P7P8M4M5D3D4:0, P12M6D5:0 },
         mcqAnswers: {},
         planningScore: 0,
+        research: { query:'', queryScore:0, selectionScore:0, selectedIds:[], hypothesisChoice:null, hypothesisCorrect:false, researchScore:0 }
       };
     }
     return AppState.patients[pid];
@@ -785,7 +1026,26 @@
   // SECTION 1: Research & Hypothesis
   function renderSection1(){
     const pid = AppState.currentPatientId; const p = patientById(pid);
-    const s1Qs = mcqBank.section1.filter(q=> q.patient===pid);
+    const ps = ensurePatientState(pid);
+    const cfg = patientResearchConfig[pid];
+    // Hypothesis options per patient (teacher-editable block)
+    const hypoOptionsByPatient = {
+      A: [
+        'Diabetes mellitus with glycosuria (most likely)',
+        'Seasonal allergies causing fatigue',
+        'Hyperthyroidism as primary cause'
+      ],
+      B: [
+        'Phenylketonuria (PKU) with neurological involvement (most likely)',
+        'Temporal lobe epilepsy without metabolic cause',
+        'Simple stress-related tiredness'
+      ],
+      C: [
+        'Hypercalcaemia causing weakness and bone pain (most likely)',
+        'Iron-deficiency anaemia',
+        'Viral syndrome (non-specific)'
+      ]
+    };
     const html = `
       <div class="two-col">
         <div>
@@ -794,14 +1054,174 @@
             <li><strong>Symptoms</strong>: ${p.symptoms.join(', ')}</li>
             <li><strong>Background</strong>: ${p.background}</li>
           </ul>
-          <p class="small">Consider multiple plausible causes (P1), then identify the most likely with justification (M1).</p>
+          <p class="small">Use the research tool to build a focused literature search (P1/M1), select appropriate evidence (P8/M6), then state your hypothesis.</p>
         </div>
         <div>
-          ${renderMCQList(s1Qs)}
+          <div class="wizard" id="rh_wizard">
+            <!-- Step 1 -->
+            <div class="step">
+              <h3>1) Build your search</h3>
+              <div class="row">
+                <label class="sr-only" for="rh_query">Search query</label>
+                <input type="text" id="rh_query" placeholder="e.g. urine glucose glycosuria diabetes" value="${ps.research.query || ''}"/>
+                <button class="btn ghost" id="rh_searchBtn">Search</button>
+                <span class="score-pill" id="rh_scorepill" aria-live="polite" style="display:${ps.research.queryScore? 'inline-flex':'none'};">Search quality: <strong id="rh_score">${ps.research.queryScore||0}/10</strong></span>
+              </div>
+              <div class="small" id="rh_query_fb"></div>
+              <div class="small hint">Tip: Good terms include <em>${cfg.targetKeywords.slice(0,5).join(', ')}</em>.</div>
+            </div>
+            <!-- Step 2 -->
+            <div class="step">
+              <h3>2) Select your evidence</h3>
+              <div id="rh_results" class="small" aria-live="polite">${renderRhResults(pid, ps.research.query, ps.research.selectedIds)}</div>
+              <div style="margin-top:8px; display:flex; gap:8px;">
+                <button class="btn ghost" id="rh_eval_btn">Evaluate my choices</button>
+                <span class="score-pill" id="rh_selpill" style="display:${ps.research.selectionScore? 'inline-flex':'none'};">Evidence score: <strong id="rh_sel">${ps.research.selectionScore||0}/10</strong></span>
+              </div>
+              <div class="small" id="rh_select_fb"></div>
+            </div>
+            <!-- Step 3 -->
+            <div class="step">
+              <h3>3) State your hypothesis</h3>
+              <div class="mcq" id="rh_hypo">
+                <div class="q">Based on your research, which disease is most likely for this patient?</div>
+                <div class="options">
+                  ${hypoOptionsByPatient[pid].map((opt,i)=>{
+                    const checked = ps.research.hypothesisChoice===i? 'checked':'';
+                    return `<label class="option"><input type="radio" name="rh_hypo" value="${i}" ${checked}/> ${opt}</label>`;
+                  }).join('')}
+                </div>
+                <div style="margin-top:6px; display:flex; gap:8px; align-items:center;">
+                  <button class="btn ghost" id="rh_hypo_btn">Check hypothesis</button>
+                  <div class="feedback" id="rh_hypo_fb"></div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     `;
+
+    // Attach event handlers post-render
+    setTimeout(()=>{
+      const qIn = document.getElementById('rh_query');
+      const qBtn = document.getElementById('rh_searchBtn');
+      const scorePill = document.getElementById('rh_scorepill');
+      const scoreEl = document.getElementById('rh_score');
+      const resWrap = document.getElementById('rh_results');
+      const qFb = document.getElementById('rh_query_fb');
+      const evalBtn = document.getElementById('rh_eval_btn');
+      const selPill = document.getElementById('rh_selpill');
+      const selEl = document.getElementById('rh_sel');
+      const selFb = document.getElementById('rh_select_fb');
+      const hypoBtn = document.getElementById('rh_hypo_btn');
+      const hypoFb = document.getElementById('rh_hypo_fb');
+
+      function runSearch(){
+        const val = qIn.value.trim();
+        const evalRes = evaluateSearchQuery(pid, val);
+        ps.research.query = val; ps.research.queryScore = evalRes.score;
+        scoreEl.textContent = `${evalRes.score}/10`;
+        scorePill.style.display = 'inline-flex';
+        // Feedback message
+        if (evalRes.score >= 7){
+          qFb.textContent = 'Good – you\'ve linked key concepts (e.g. urine/glucose) to the likely condition.';
+          qFb.style.color = '#86efac';
+        } else if (evalRes.includesRequiredConcept) {
+          qFb.textContent = 'Decent start. Consider adding more specific terms (e.g. glycosuria, diabetes mellitus).';
+          qFb.style.color = '#fbbf24';
+        } else {
+          qFb.textContent = 'Your search is vague; include core substances or terms like “glucose”, “urine”, or the named disorder.';
+          qFb.style.color = '#fca5a5';
+        }
+        // Render search results
+        resWrap.innerHTML = renderRhResults(pid, val, ps.research.selectedIds);
+        bindRhResultToggles();
+      }
+
+      function evaluateSelection(){
+        const selected = Array.from(document.querySelectorAll('input[name="ev_pick"]')).filter(x=>x.checked).map(x=>x.value);
+        ps.research.selectedIds = selected;
+        const res = evaluateArticleSelection(pid, selected);
+        ps.research.selectionScore = res.score;
+        selEl.textContent = `${res.score}/10`;
+        selPill.style.display = 'inline-flex';
+        const msgs = [];
+        if (res.correctlyChosen.length) msgs.push('Good: you selected key article(s) ' + res.correctlyChosen.join(', ') + '.');
+        if (res.missedGood.length) msgs.push('You missed important article(s): ' + res.missedGood.join(', ') + '.');
+        if (res.irrelevantChosen.length) msgs.push('These look off-topic/low-relevance: ' + res.irrelevantChosen.join(', ') + '.');
+        selFb.textContent = msgs.join(' ');
+        selFb.style.color = res.missedGood.length? '#fbbf24' : '#86efac';
+        // Update overall researchScore for summary
+        ps.research.researchScore = Math.min(10, Math.max(0, Math.round(((ps.research.queryScore + ps.research.selectionScore)/2) + (ps.research.hypothesisCorrect?2:0))));
+      }
+
+      function checkHypothesis(){
+        const inputs = document.querySelectorAll('input[name="rh_hypo"]');
+        let idx = null; inputs.forEach(i=>{ if (i.checked) idx = +i.value; });
+        if (idx===null){ hypoFb.textContent = 'Choose an option first.'; hypoFb.classList.add('show','error'); return; }
+        ps.research.hypothesisChoice = idx;
+        const correctIdx = 0; // first option is keyed as most likely in each list
+        const ok = idx === correctIdx;
+        ps.research.hypothesisCorrect = ok;
+        hypoFb.classList.add('show'); hypoFb.classList.toggle('error', !ok);
+        hypoFb.textContent = ok ? 'Correct: this is the most likely diagnosis based on your evidence.' : 'Not quite – review your evidence and consider the core biochemical findings.';
+        // Refresh composite score
+        ps.research.researchScore = Math.min(10, Math.max(0, Math.round(((ps.research.queryScore + ps.research.selectionScore)/2) + (ps.research.hypothesisCorrect?2:0))));
+        // Add to P1/M1 cluster incrementally when correct
+        addScore(pid, 'P1M1', ok? 1 : 0);
+      }
+
+      function bindRhResultToggles(){
+        document.querySelectorAll('[data-abs]')?.forEach(btn=>{
+          btn.addEventListener('click', ()=>{
+            const id = btn.getAttribute('data-abs');
+            const el = document.getElementById('abs_'+id);
+            if (!el) return; const show = el.style.display !== 'block';
+            el.style.display = show? 'block':'none';
+            btn.textContent = show? 'Hide abstract':'Show abstract';
+          })
+        });
+      }
+
+      qBtn.addEventListener('click', runSearch);
+      qIn.addEventListener('keydown', (e)=>{ if (e.key==='Enter') runSearch(); });
+      evalBtn.addEventListener('click', evaluateSelection);
+      hypoBtn.addEventListener('click', checkHypothesis);
+      // Ensure toggles work on initial render
+      bindRhResultToggles();
+    });
+
     return sectionHeader(html);
+  }
+
+  // Render helper: search results list with checkboxes
+  function renderRhResults(patientId, query, selectedIds){
+    const sel = new Set(selectedIds||[]);
+    const results = query ? searchArticles(patientId, query) : [];
+    if (!query) return '<p class="small">Type a focused query, then press Search to see articles.</p>';
+    if (!results.length) return '<p class="small">No matches. Try adding specific biochemical terms (e.g. named analytes).</p>';
+    return results.map(a=>{
+      const checked = sel.has(a.id) ? 'checked' : '';
+      const meta = `${a.journal} · ${a.year} · ${a.type}`;
+      return `<div class="article">
+        <header>
+          <div>
+            <div class="title">${a.title}</div>
+            <div class="small" style="color:#a7f3d0;">${meta}</div>
+            <div class="small">Keywords: ${a.keywords.join(', ')}</div>
+          </div>
+          <label class="small" style="min-width:180px; display:flex; gap:6px; align-items:center; justify-content:flex-end;">
+            <input type="checkbox" name="ev_pick" value="${a.id}" ${checked}/> Use as evidence
+          </label>
+        </header>
+        <div style="margin-top:6px;">
+          <button class="btn ghost small" data-abs="${a.id}">Show abstract</button>
+          <span class="small" style="margin-left:8px;">Relevance: ${a._rel ?? 0} · Reliability: ${a.reliabilityScore}/10</span>
+        </div>
+        <div class="abstract" id="abs_${a.id}">${a.abstract}</div>
+      </div>`;
+    }).join('');
   }
 
   // SECTION 2: Plan & Risk
@@ -1049,7 +1469,7 @@
           <table>
             <thead><tr><th>Criterion cluster</th><th>Score</th></tr></thead>
             <tbody>
-              <tr><td>Research & hypothesis (P1/M1)</td><td>${clusterScores.P1M1}</td></tr>
+              <tr><td>Research & hypothesis (P1/M1)</td><td>${clusterScores.P1M1 + (ps.research?.researchScore||0)}</td></tr>
               <tr><td>Planning & risk (P2/P3/M2/D1)</td><td>${clusterScores.P2P3M2D1 + (ps.planningScore||0)}</td></tr>
               <tr><td>Practical performance & data (P4/P6/D2)</td><td>${clusterScores.P4P6D2}</td></tr>
               <tr><td>Processing & interpretation (P7/P8/M4/M5/D3/D4)</td><td>${clusterScores.P7P8M4M5D3D4}</td></tr>
@@ -1057,6 +1477,7 @@
             </tbody>
           </table>
           <div class="small" style="margin-top:8px;">Planning score bonus (tests chosen): <strong>${ps.planningScore}</strong></div>
+          <div class="small">Research score (query+evidence+hypothesis): <strong>${ps.research?.researchScore||0}</strong></div>
           <div style="margin-top:12px; display:flex; gap:8px; flex-wrap:wrap;">
             <button class="btn secondary" id="finishPatientBtn">Finish patient</button>
           </div>
@@ -1145,10 +1566,10 @@
     const container = document.getElementById('overallSummary');
     const rows = patients.map(p=>{
       const ps = ensurePatientState(p.id);
-      const s = ps.scores; const total = s.P1M1 + s.P2P3M2D1 + ps.planningScore + s.P4P6D2 + s.P7P8M4M5D3D4 + s.P12M6D5;
+      const s = ps.scores; const total = (s.P1M1 + (ps.research?.researchScore||0)) + (s.P2P3M2D1 + ps.planningScore) + s.P4P6D2 + s.P7P8M4M5D3D4 + s.P12M6D5;
       return `<tr>
         <td>${p.name}</td>
-        <td>${s.P1M1}</td>
+        <td>${s.P1M1 + (ps.research?.researchScore||0)}</td>
         <td>${s.P2P3M2D1 + ps.planningScore}</td>
         <td>${s.P4P6D2}</td>
         <td>${s.P7P8M4M5D3D4}</td>
@@ -1157,7 +1578,7 @@
       </tr>`;
     }).join('');
     const overall = patients.reduce((acc,p)=>{
-      const ps = ensurePatientState(p.id); const s = ps.scores; return acc + s.P1M1 + s.P2P3M2D1 + ps.planningScore + s.P4P6D2 + s.P7P8M4M5D3D4 + s.P12M6D5; }, 0);
+      const ps = ensurePatientState(p.id); const s = ps.scores; return acc + (s.P1M1 + (ps.research?.researchScore||0)) + (s.P2P3M2D1 + ps.planningScore) + s.P4P6D2 + s.P7P8M4M5D3D4 + s.P12M6D5; }, 0);
 
     container.innerHTML = `
       <table>

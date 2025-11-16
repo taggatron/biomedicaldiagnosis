@@ -141,12 +141,16 @@
 
     .pill { display: inline-block; padding: 4px 8px; border-radius: 999px; font-size: 12px; border: 1px solid #223044; background: #0f1a31; color: #c7d2fe; }
 
-    /* Patient summary pills styled like standard chips */
+    /* Patient summary pills displayed as normal body text */
     #patientSummary { display:flex; gap:6px; flex-wrap:wrap; white-space:normal; overflow:visible; }
     #patientSummary .pill {
-      background: var(--chip);
-      color: #d1fae5;
-      border-color: #223044;
+      background: transparent;
+      color: inherit;
+      border: 0;
+      padding: 0;
+      border-radius: 0;
+      font-size: inherit;
+      display: inline;
       box-shadow: none;
       white-space: normal;
     }

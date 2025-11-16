@@ -38,7 +38,7 @@
 
     .container { max-width: 1100px; margin: 0 auto; padding: 24px; }
     header { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 16px; }
-    header h1 { font-size: 1.25rem; margin: 0; letter-spacing: 0.5px; }
+    header h1 { font-size: 1.25rem; margin: 0; letter-spacing: 0.5px; color: #d1fae5; }
     header .actions { display: flex; gap: 8px; align-items: center; }
 
     .screen { display: none; }
@@ -141,29 +141,14 @@
 
     .pill { display: inline-block; padding: 4px 8px; border-radius: 999px; font-size: 12px; border: 1px solid #223044; background: #0f1a31; color: #c7d2fe; }
 
-    /* Patient summary: use lighter, non-dark chips for clarity */
+    /* Patient summary pills styled like standard chips */
     #patientSummary { display:flex; gap:6px; flex-wrap:wrap; white-space:normal; overflow:visible; }
-    #patientSummary .pill { 
-      background: linear-gradient(180deg, rgba(248,250,252,0.95), rgba(241,245,249,0.88));
-      color: #0b162c;
-      border-color: rgba(15,23,42,0.18);
-      box-shadow: 0 1px 0 rgba(255,255,255,0.8) inset, 0 4px 14px rgba(255,255,255,0.06);
+    #patientSummary .pill {
+      background: var(--chip);
+      color: #d1fae5;
+      border-color: #223044;
+      box-shadow: none;
       white-space: normal;
-    }
-    /* Name pill — soft sky */
-    #patientSummary .pill:nth-child(1){
-      background: linear-gradient(180deg, rgba(186,230,253,0.98), rgba(125,211,252,0.88));
-      color:#05243a; border-color: rgba(2,44,77,0.25);
-    }
-    /* Age pill — also soft sky (blue) */
-    #patientSummary .pill:nth-child(2){
-      background: linear-gradient(180deg, rgba(186,230,253,0.98), rgba(125,211,252,0.88));
-      color:#05243a; border-color: rgba(2,44,77,0.25);
-    }
-    /* Symptoms pill — soft green */
-    #patientSummary .pill:nth-child(3){
-      background: linear-gradient(180deg, rgba(186,230,253,0.98), rgba(125,211,252,0.88));
-      color:#063018; border-color: rgba(2,44,77,0.25);
     }
 
     .help { display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px; border-radius: 999px; background: #0c1426; border: 1px solid #223044; color: #7dd3fc; font-weight: 800; cursor: pointer; }

@@ -75,6 +75,26 @@
     .btn.ghost { background: transparent; color: var(--text); border: 1px solid var(--border); }
     .btn:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
 
+    /* Override ghost buttons for Help / Reset / Hint / History to use light green background like title text */
+    #helpBtn.btn.ghost,
+    #resetBtn.btn.ghost,
+    #resetBtn2.btn.ghost,
+    button.btn.ghost[data-hint],
+    button.btn.ghost[data-history] {
+      background: #d1fae5; /* same as page title text color */
+      color: var(--bg); /* dark background for contrast */
+      border-color: #d1fae5;
+    }
+    #helpBtn.btn.ghost:hover,
+    #resetBtn.btn.ghost:hover,
+    #resetBtn2.btn.ghost:hover,
+    button.btn.ghost[data-hint]:hover,
+    button.btn.ghost[data-history]:hover {
+      background: #bbf7d0; /* slightly darker green on hover */
+      color: var(--bg);
+      border-color: #bbf7d0;
+    }
+
     .grid { display: grid; gap: 16px; }
     .grid.cards { grid-template-columns: repeat(3, 1fr); }
     @media (max-width: 1000px) {
@@ -1052,7 +1072,6 @@
           <h2>Patient summary</h2>
           <ul class="list small">
             <li><strong>Symptoms</strong>: ${p.symptoms.join(', ')}</li>
-            <li><strong>Background</strong>: ${p.background}</li>
           </ul>
           <p class="small">Use the research tool to build a focused literature search (P1/M1), select appropriate evidence (P8/M6), then state your hypothesis.</p>
         </div>

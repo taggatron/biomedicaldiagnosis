@@ -722,6 +722,38 @@
       hazards: ['Biological sample: biohazard', 'Glass slides: cuts'],
       simulate: (ctx) => ({ outcome: ctx.patientId === 'C' ? 'Hyaline casts and proteinaceous material observed' : 'Normal sediment' , positive: ctx.patientId === 'C' })
     }
+    ,
+    // Added investigations: Microbiological culture and Haemocytometer
+    {
+      id: 'micro_culture', category: 'Microbiology', name: 'Microbiological culture (urine)', type: 'qualitative',
+      method: [
+        'Aseptically plate urine onto CLED/MacConkey agar.',
+        'Incubate at 35–37°C for 18–24 h.',
+        'Estimate colony count (CFU/mL); identify predominant organism if significant.'
+      ],
+      hazards: ['Biological sample: biohazard', 'Live cultures: follow microbiological safety procedures'],
+      simulate: (ctx) => {
+        if (ctx.patientId === 'A') return { outcome: 'Significant growth: Escherichia coli (~>10^5 CFU/mL)', positive: true };
+        if (ctx.patientId === 'C') return { outcome: 'Mixed growth <10^5 CFU/mL (likely contamination)', positive: false };
+        return { outcome: 'No significant growth', positive: false };
+      }
+    },
+    {
+      id: 'haemocytometer', category: 'Cell counting', name: 'Haemocytometer (cell count)', type: 'quantitative',
+      method: [
+        'Prepare dilution as required; load haemocytometer chamber carefully.',
+        'Focus on grid; count cells in the defined squares (use rules for borders).',
+        'Calculate cells per µL or mL using dilution and chamber volume.'
+      ],
+      hazards: ['Biological sample: biohazard', 'Glass slide/cover slip: cuts'],
+      simulate: (ctx) => {
+        // Generate counts for 5 squares; a little variability by patient
+        const base = ctx.patientId === 'B' ? 42 : ctx.patientId === 'C' ? 58 : 50;
+        const repeats = Array.from({ length: 5 }, () => base + Math.floor((Math.random()-0.5)*8));
+        const absorbances = repeats.map(()=>'—');
+        return { repeats, absorbances, unit: 'cells/µL' };
+      }
+    }
   ];
 
   // Patients (three cases)

@@ -218,6 +218,17 @@
     .abstract { display:none; color: var(--text-dim); margin-top:6px; }
     .article header { display:flex; justify-content:space-between; gap:8px; align-items:flex-start; }
     .hint { color:#93c5fd; }
+    /* Compact patient list layout for very small mobile screens (e.g., iPhone 12 Pro width) */
+    @media (max-width: 430px) {
+      #screen-patients .panel { padding: 12px 12px 14px; }
+      #screen-patients h2.title { margin: 0 0 6px; font-size: 1.25rem !important; }
+      .grid.cards { gap: 10px; }
+      .card { padding: 12px 14px; gap: 8px; }
+      .card h3 { font-size: 1rem; }
+      .card .small { font-size: 0.8rem; }
+      #screen-patients .card button.btn { min-height: 40px; padding: 10px 14px; }
+      #screen-patients .card div[style*="margin-top:6px"] { margin-top: 4px !important; gap: 6px !important; }
+    }
   </style>
 </head>
 <body>

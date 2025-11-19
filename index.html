@@ -220,7 +220,7 @@
               <li>Focus: planning, safe methods, data quality, interpretation, evaluation.</li>
             </ul>
             <div style="margin-top:16px; display:flex; gap:8px; flex-wrap:wrap;">
-              <button id="startBtn" class="btn" aria-controls="screen-patients">Start</button>
+              <button id="startBtn" class="btn" aria-controls="screen-context">Start</button>
               <button id="quickStartBtn" class="btn secondary" aria-controls="screen-patients">Quick start (Patient list)</button>
             </div>
           </div>
@@ -239,6 +239,28 @@
               <span class="pill">Works offline</span>
               <span class="pill">Teacher-editable data</span>
             </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Context screen (shown after Start) -->
+      <section id="screen-context" class="screen" aria-labelledby="context-title">
+        <div class="panel">
+          <h2 id="context-title" class="title" style="font-size:1.6rem; margin:0 0 12px;">Welcome to HelixPoint Biomedical Diagnostics Laboratory</h2>
+          <p class="small" style="margin-top:0;">This virtual lab experience is inspired by the <strong>AQA Human Biology F173 Biomedical Techniques NEA assessment</strong>. It is a simplified, self‑contained simulation designed for learning and practice only.</p>
+          <p class="small">You are a trainee biomedical scientist joining the fictitious <em>HelixPoint Biomedical Diagnostics Laboratory</em>. Three virtual patients have been referred with distinct symptom clusters. Your task is to:</p>
+          <ul class="list small">
+            <li><strong>Research</strong> likely differential diagnoses using focused biochemical keywords.</li>
+            <li><strong>Plan</strong> safe, efficient test panels (qualitative ion tests, biochemical assays, chromatography, titration, colorimetry, etc.).</li>
+            <li><strong>Perform</strong> simplified test simulations and record replicate data where quantitative.</li>
+            <li><strong>Process & Interpret</strong> results (means, calibration curves, uncertainty, reference ranges).</li>
+            <li><strong>Evaluate</strong> method quality and propose improvements.</li>
+          </ul>
+          <p class="small">Your performance earns points mapped to the F173 criteria clusters (P / M / D). Each patient contributes to an overall score that you will see at the end. High scores reflect strong evidence selection, appropriate test choice, sound data handling, and critical evaluation.</p>
+          <p class="small" style="color:#93c5fd;">Important: All patient data and outcomes are fictitious. This tool does <em>not</em> represent real clinical decision support and must not be used for real diagnosis or treatment.</p>
+          <div style="margin-top:14px; display:flex; gap:8px; flex-wrap:wrap;">
+            <button id="toPatientsBtn" class="btn" aria-controls="screen-patients">Continue to patient selection</button>
+            <button class="btn ghost" id="contextBackIntro" aria-controls="screen-intro">Back</button>
           </div>
         </div>
       </section>
@@ -1792,7 +1814,8 @@
   // ==========================
   function init(){
     renderPatientCards();
-    document.getElementById('startBtn').addEventListener('click', ()=> switchScreen('screen-patients'));
+    // Updated: Start now shows contextual introduction screen
+    document.getElementById('startBtn').addEventListener('click', ()=> switchScreen('screen-context'));
     document.getElementById('quickStartBtn').addEventListener('click', ()=> switchScreen('screen-patients'));
     document.getElementById('backToPatientsBtn').addEventListener('click', ()=> switchScreen('screen-patients'));
     document.getElementById('nextSectionBtn').addEventListener('click', ()=>{ AppState.currentSectionIndex=Math.min(Sections.length-1, AppState.currentSectionIndex+1); renderDashboard(); bindMCQHandlers(); });
@@ -1802,6 +1825,11 @@
     document.getElementById('resetBtn').addEventListener('click', resetGame);
     document.getElementById('resetBtn2').addEventListener('click', resetGame);
     document.getElementById('goPatientsAgain').addEventListener('click', ()=> switchScreen('screen-patients'));
+    // New navigation buttons on context screen
+    const toPatientsBtn = document.getElementById('toPatientsBtn');
+    if (toPatientsBtn) toPatientsBtn.addEventListener('click', ()=> switchScreen('screen-patients'));
+    const contextBackIntro = document.getElementById('contextBackIntro');
+    if (contextBackIntro) contextBackIntro.addEventListener('click', ()=> switchScreen('screen-intro'));
     bindMCQHandlers();
   }
 

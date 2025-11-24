@@ -89,6 +89,7 @@
     #helpBtn.btn.ghost,
     #resetBtn.btn.ghost,
     #resetBtn2.btn.ghost,
+    #assessmentBtn.btn.ghost,
     button.btn.ghost[data-hint],
     button.btn.ghost[data-history] {
       background: #d1fae5; /* same as page title text color */
@@ -98,6 +99,7 @@
     #helpBtn.btn.ghost:hover,
     #resetBtn.btn.ghost:hover,
     #resetBtn2.btn.ghost:hover,
+    #assessmentBtn.btn.ghost:hover,
     button.btn.ghost[data-hint]:hover,
     button.btn.ghost[data-history]:hover {
       background: #bbf7d0; /* slightly darker green on hover */
@@ -202,6 +204,15 @@
     dialog { border: 1px solid var(--border); background: #0a1221; color: var(--text); border-radius: 12px; padding: 16px; width: min(600px, 92vw); }
     dialog::backdrop { background: rgba(2,6,23,0.72); backdrop-filter: blur(2px); }
 
+    .checklist-grid { display:grid; gap:12px; max-height:60vh; overflow:auto; padding-right:4px; }
+    .checklist-group { border:1px solid var(--border); background:#0c1426; border-radius:10px; padding:10px 12px; }
+    .checklist-group-header { display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:6px; }
+    .checklist-group-title { font-weight:700; font-size:0.96rem; }
+    .checklist-items { list-style:none; padding-left:0; margin:0; display:grid; gap:4px; }
+    .checklist-items li { display:flex; align-items:flex-start; gap:6px; font-size:0.86rem; color:var(--text-dim); }
+    .checklist-items input[type="checkbox"] { margin-top:3px; }
+    .criteria-tag { display:inline-flex; align-items:center; justify-content:center; min-width:1.8rem; height:1.8rem; border-radius:999px; background:#022c22; color:#bbf7d0; font-weight:700; font-size:0.8rem; border:1px solid #16a34a; }
+
     .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
 
     /* Research wizard (fake-PubMed) */
@@ -253,6 +264,7 @@
     <header aria-label="App header">
       <h1>F173 Biomedical Techniques Virtual Lab</h1>
       <div class="actions">
+        <button class="btn ghost" id="assessmentBtn" aria-haspopup="dialog" aria-controls="assessmentDialog">Assessment checklist</button>
         <button class="btn ghost" id="helpBtn" aria-haspopup="dialog" aria-controls="helpDialog">Help</button>
         <button class="btn ghost" id="resetBtn">Reset game</button>
       </div>
@@ -372,6 +384,214 @@
     </ul>
     <div style="display:flex; justify-content:flex-end; margin-top:8px;">
       <button class="btn" id="helpClose">Close</button>
+    </div>
+  </dialog>
+
+  <!-- Assessment checklist dialog -->
+  <dialog id="assessmentDialog" aria-labelledby="assessmentTitle">
+    <h3 id="assessmentTitle" style="margin-top:0;">Assessment checklist</h3>
+    <p class="small">Tick off guidance as students demonstrate evidence against the criteria. This is a quick memory aid only; always refer to the official specification.</p>
+    <div class="checklist-grid" role="list">
+      <section class="checklist-group" role="group" aria-labelledby="critP1Label">
+        <div class="checklist-group-header">
+          <div class="criteria-tag" aria-hidden="true">P1</div>
+          <h4 id="critP1Label" class="checklist-group-title">Use research to identify diseases</h4>
+        </div>
+        <ul class="checklist-items">
+          <li><input type="checkbox" id="p1-1"><label for="p1-1">Used research to identify a range of potential diseases that the patients might have.</label></li>
+          <li><input type="checkbox" id="p1-2"><label for="p1-2">Range of diseases clearly linked to patients' symptoms.</label></li>
+        </ul>
+      </section>
+
+      <section class="checklist-group" role="group" aria-labelledby="critP2Label">
+        <div class="checklist-group-header">
+          <div class="criteria-tag" aria-hidden="true">P2</div>
+          <h4 id="critP2Label" class="checklist-group-title">Create a method with suitable tests</h4>
+        </div>
+        <ul class="checklist-items">
+          <li><input type="checkbox" id="p2-1"><label for="p2-1">Step-by-step method created for the investigation.</label></li>
+          <li><input type="checkbox" id="p2-2"><label for="p2-2">Includes appropriate tests and techniques to investigate unidentified samples based on suspected diseases.</label></li>
+          <li><input type="checkbox" id="p2-3"><label for="p2-3">Lists equipment, including sizes, quantities and PPE where appropriate.</label></li>
+        </ul>
+      </section>
+
+      <section class="checklist-group" role="group" aria-labelledby="critP3Label">
+        <div class="checklist-group-header">
+          <div class="criteria-tag" aria-hidden="true">P3</div>
+          <h4 id="critP3Label" class="checklist-group-title">Complete a risk assessment</h4>
+        </div>
+        <ul class="checklist-items">
+          <li><input type="checkbox" id="p3-1"><label for="p3-1">Appropriate risk assessment template completed for the investigation.</label></li>
+          <li><input type="checkbox" id="p3-2"><label for="p3-2">Risks and hazards considered for each test and technique.</label></li>
+        </ul>
+      </section>
+
+      <section class="checklist-group" role="group" aria-labelledby="critM1Label">
+        <div class="checklist-group-header">
+          <div class="criteria-tag" aria-hidden="true">M1</div>
+          <h4 id="critM1Label" class="checklist-group-title">Assess two suspected diseases</h4>
+        </div>
+        <ul class="checklist-items">
+          <li><input type="checkbox" id="m1-1"><label for="m1-1">Assessed two suspected diseases for each patient in terms of likelihood given the symptoms.</label></li>
+          <li><input type="checkbox" id="m1-2"><label for="m1-2">Judgements clearly linked to research and symptom information.</label></li>
+        </ul>
+      </section>
+
+      <section class="checklist-group" role="group" aria-labelledby="critM2Label">
+        <div class="checklist-group-header">
+          <div class="criteria-tag" aria-hidden="true">M2</div>
+          <h4 id="critM2Label" class="checklist-group-title">Explain rationale for chosen tests</h4>
+        </div>
+        <ul class="checklist-items">
+          <li><input type="checkbox" id="m2-1"><label for="m2-1">Explains rationale for tests and techniques chosen based on suspected diseases identified in M1.</label></li>
+        </ul>
+      </section>
+
+      <section class="checklist-group" role="group" aria-labelledby="critD1Label">
+        <div class="checklist-group-header">
+          <div class="criteria-tag" aria-hidden="true">D1</div>
+          <h4 id="critD1Label" class="checklist-group-title">Justify equipment choice</h4>
+        </div>
+        <ul class="checklist-items">
+          <li><input type="checkbox" id="d1-1"><label for="d1-1">Justifies the choice of appropriate equipment for the chosen tests and techniques.</label></li>
+        </ul>
+      </section>
+
+      <section class="checklist-group" role="group" aria-labelledby="critP4Label">
+        <div class="checklist-group-header">
+          <div class="criteria-tag" aria-hidden="true">P4</div>
+          <h4 id="critP4Label" class="checklist-group-title">Perform the investigation safely</h4>
+        </div>
+        <ul class="checklist-items">
+          <li><input type="checkbox" id="p4-1"><label for="p4-1">Performed the planned investigation safely (including control of risks from P3).</label></li>
+          <li><input type="checkbox" id="p4-2"><label for="p4-2">Any required teacher observation / record of safe practice is completed and signed.</label></li>
+        </ul>
+      </section>
+
+      <section class="checklist-group" role="group" aria-labelledby="critP6Label">
+        <div class="checklist-group-header">
+          <div class="criteria-tag" aria-hidden="true">P6</div>
+          <h4 id="critP6Label" class="checklist-group-title">Record data appropriately</h4>
+        </div>
+        <ul class="checklist-items">
+          <li><input type="checkbox" id="p6-1"><label for="p6-1">Data recorded in appropriate ways using correct conventions and units.</label></li>
+          <li><input type="checkbox" id="p6-2"><label for="p6-2">Tables and/or qualitative descriptions used appropriately for the investigation.</label></li>
+        </ul>
+      </section>
+
+      <section class="checklist-group" role="group" aria-labelledby="critD2Label">
+        <div class="checklist-group-header">
+          <div class="criteria-tag" aria-hidden="true">D2</div>
+          <h4 id="critD2Label" class="checklist-group-title">Quality of practical work</h4>
+        </div>
+        <ul class="checklist-items">
+          <li><input type="checkbox" id="d2-1"><label for="d2-1">Teacher Observation Record comments on skilful use of apparatus.</label></li>
+          <li><input type="checkbox" id="d2-2"><label for="d2-2">Record comments on accuracy and precision of data collected.</label></li>
+        </ul>
+      </section>
+
+      <section class="checklist-group" role="group" aria-labelledby="critP7Label">
+        <div class="checklist-group-header">
+          <div class="criteria-tag" aria-hidden="true">P7</div>
+          <h4 id="critP7Label" class="checklist-group-title">Use maths to process data</h4>
+        </div>
+        <ul class="checklist-items">
+          <li><input type="checkbox" id="p7-1"><label for="p7-1">Used standard mathematical techniques (Appendix D) to process data.</label></li>
+          <li><input type="checkbox" id="p7-2"><label for="p7-2">At least one full example of working shown in written evidence.</label></li>
+        </ul>
+      </section>
+
+      <section class="checklist-group" role="group" aria-labelledby="critP8Label">
+        <div class="checklist-group-header">
+          <div class="criteria-tag" aria-hidden="true">P8</div>
+          <h4 id="critP8Label" class="checklist-group-title">Compare data with value ranges</h4>
+        </div>
+        <ul class="checklist-items">
+          <li><input type="checkbox" id="p8-1"><label for="p8-1">Used research to find correct established value ranges.</label></li>
+          <li><input type="checkbox" id="p8-2"><label for="p8-2">Compared own data with those established value ranges.</label></li>
+        </ul>
+      </section>
+
+      <section class="checklist-group" role="group" aria-labelledby="critM4Label">
+        <div class="checklist-group-header">
+          <div class="criteria-tag" aria-hidden="true">M4</div>
+          <h4 id="critM4Label" class="checklist-group-title">Calculate percentage uncertainties</h4>
+        </div>
+        <ul class="checklist-items">
+          <li><input type="checkbox" id="m4-1"><label for="m4-1">Percentage uncertainty calculated for each piece of equipment used.</label></li>
+          <li><input type="checkbox" id="m4-2"><label for="m4-2">Combined uncertainty determined for each repeat where appropriate.</label></li>
+          <li><input type="checkbox" id="m4-3"><label for="m4-3">At least one full example of working shown in written evidence.</label></li>
+        </ul>
+      </section>
+
+      <section class="checklist-group" role="group" aria-labelledby="critM5Label">
+        <div class="checklist-group-header">
+          <div class="criteria-tag" aria-hidden="true">M5</div>
+          <h4 id="critM5Label" class="checklist-group-title">Justify which patient each sample belongs to</h4>
+        </div>
+        <ul class="checklist-items">
+          <li><input type="checkbox" id="m5-1"><label for="m5-1">Justifies which patient each sample belongs to, building on analysis in P9.</label></li>
+        </ul>
+      </section>
+
+      <section class="checklist-group" role="group" aria-labelledby="critD3Label">
+        <div class="checklist-group-header">
+          <div class="criteria-tag" aria-hidden="true">D3</div>
+          <h4 id="critD3Label" class="checklist-group-title">Explain sources of error</h4>
+        </div>
+        <ul class="checklist-items">
+          <li><input type="checkbox" id="d3-1"><label for="d3-1">Explains sources of error and possible reasons for any anomalous data (or states clearly if none).</label></li>
+        </ul>
+      </section>
+
+      <section class="checklist-group" role="group" aria-labelledby="critD4Label">
+        <div class="checklist-group-header">
+          <div class="criteria-tag" aria-hidden="true">D4</div>
+          <h4 id="critD4Label" class="checklist-group-title">Justify final disease diagnosis</h4>
+        </div>
+        <ul class="checklist-items">
+          <li><input type="checkbox" id="d4-1"><label for="d4-1">Justifies which disease each patient has, extending the justification in M5.</label></li>
+        </ul>
+      </section>
+
+      <section class="checklist-group" role="group" aria-labelledby="critP12Label">
+        <div class="checklist-group-header">
+          <div class="criteria-tag" aria-hidden="true">P12</div>
+          <h4 id="critP12Label" class="checklist-group-title">Assess effectiveness of methods</h4>
+        </div>
+        <ul class="checklist-items">
+          <li><input type="checkbox" id="p12-1"><label for="p12-1">Assesses the effectiveness of the methods used to collect data.</label></li>
+          <li><input type="checkbox" id="p12-2"><label for="p12-2">Judgement informed by how well good quality data were collected with chosen techniques and equipment.</label></li>
+        </ul>
+      </section>
+
+      <section class="checklist-group" role="group" aria-labelledby="critM6Label">
+        <div class="checklist-group-header">
+          <div class="criteria-tag" aria-hidden="true">M6</div>
+          <h4 id="critM6Label" class="checklist-group-title">Evaluate sources and strengths</h4>
+        </div>
+        <ul class="checklist-items">
+          <li><input type="checkbox" id="m6-1"><label for="m6-1">Evaluates the sources of information researched in Task 1 and established value ranges in Task 3.</label></li>
+          <li><input type="checkbox" id="m6-2"><label for="m6-2">Makes reasoned judgements on confidence in sources, with reference to reliability and validity.</label></li>
+          <li><input type="checkbox" id="m6-3"><label for="m6-3">Analyses the strengths of the investigation (M7 concept included here for quick reference).</label></li>
+        </ul>
+      </section>
+
+      <section class="checklist-group" role="group" aria-labelledby="critD5Label">
+        <div class="checklist-group-header">
+          <div class="criteria-tag" aria-hidden="true">D5</div>
+          <h4 id="critD5Label" class="checklist-group-title">Justify improvements</h4>
+        </div>
+        <ul class="checklist-items">
+          <li><input type="checkbox" id="d5-1"><label for="d5-1">Justifies suggestions for improvements that would strengthen conclusions or answer the research question.</label></li>
+          <li><input type="checkbox" id="d5-2"><label for="d5-2">Uses processed data to support recommended improvements.</label></li>
+          <li><input type="checkbox" id="d5-3"><label for="d5-3">If no improvements are recommended, this is justified using evidence from the investigation.</label></li>
+        </ul>
+      </section>
+    </div>
+    <div style="display:flex; justify-content:flex-end; margin-top:10px; gap:8px;">
+      <button class="btn ghost" id="assessmentClear">Clear ticks</button>
+      <button class="btn" id="assessmentClose">Close</button>
     </div>
   </dialog>
 
@@ -1893,6 +2113,21 @@
     document.getElementById('prevSectionBtn').addEventListener('click', ()=>{ AppState.currentSectionIndex=Math.max(0, AppState.currentSectionIndex-1); renderDashboard(); bindMCQHandlers(); });
     document.getElementById('helpBtn').addEventListener('click', ()=> document.getElementById('helpDialog').showModal());
     document.getElementById('helpClose').addEventListener('click', ()=> document.getElementById('helpDialog').close());
+    const assessmentDialog = document.getElementById('assessmentDialog');
+    const assessmentBtn = document.getElementById('assessmentBtn');
+    const assessmentClose = document.getElementById('assessmentClose');
+    const assessmentClear = document.getElementById('assessmentClear');
+    if (assessmentBtn && assessmentDialog) {
+      assessmentBtn.addEventListener('click', ()=> assessmentDialog.showModal());
+    }
+    if (assessmentClose && assessmentDialog) {
+      assessmentClose.addEventListener('click', ()=> assessmentDialog.close());
+    }
+    if (assessmentClear && assessmentDialog) {
+      assessmentClear.addEventListener('click', ()=>{
+        assessmentDialog.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = false);
+      });
+    }
     document.getElementById('resetBtn').addEventListener('click', resetGame);
     document.getElementById('resetBtn2').addEventListener('click', resetGame);
     document.getElementById('goPatientsAgain').addEventListener('click', ()=> switchScreen('screen-patients'));
